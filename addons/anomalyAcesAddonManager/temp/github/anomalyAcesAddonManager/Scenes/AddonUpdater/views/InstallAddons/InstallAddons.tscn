@@ -1,0 +1,146 @@
+[gd_scene format=3 uid="uid://cclal1evfyb24"]
+
+[ext_resource type="Script" uid="uid://bbjhmu7wcumoo" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/InstallAddons/ace_plugin_install_addons_view.gd" id="1_ptdwp"]
+[ext_resource type="Texture2D" uid="uid://cteynqempaseb" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonBack.svg" id="2_1erv5"]
+[ext_resource type="FontFile" uid="uid://cpb0xvgcv3wdl" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Medium.ttf" id="2_uu8fy"]
+[ext_resource type="Script" uid="uid://sx1wgfw6xjis" path="res://addons/anomalyAcesTable/Scripts/ace_table_properties.gd" id="3_lyycq"]
+[ext_resource type="Theme" uid="uid://bx1fly6adbouv" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-HeaderTheme.tres" id="4_2iuyi"]
+[ext_resource type="Theme" uid="uid://dvm3ul1pd018w" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-HeaderCellTheme.tres" id="5_bt30r"]
+[ext_resource type="Theme" uid="uid://wgkqeg5mojsr" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-RowTheme.tres" id="6_1erv5"]
+[ext_resource type="Theme" uid="uid://byewiscuxyxda" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-RowCellTheme.tres" id="7_t7svs"]
+[ext_resource type="PackedScene" uid="uid://cd0aapc45wg2k" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Loading/LoadingView.tscn" id="8_bt30r"]
+[ext_resource type="Texture2D" uid="uid://dheudj0jp7p0o" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonInstall.svg" id="10_t7svs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lyycq"]
+bg_color = Color(0.0006904672, 0.02125666, 0.04044265, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yq3iu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0ba0b"]
+
+[sub_resource type="Theme" id="Theme_oxym2"]
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_lyycq")
+RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_yq3iu")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_0ba0b")
+
+[node name="InstallAddons" type="Control" unique_id=2121648271]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ptdwp")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2087539497]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_oxym2")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=1694393823]
+layout_mode = 2
+theme_override_constants/margin_left = 27
+theme_override_constants/margin_top = 27
+theme_override_constants/margin_right = 27
+theme_override_constants/margin_bottom = 27
+
+[node name="PageContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=998148114]
+layout_mode = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1069900459]
+layout_mode = 2
+alignment = 1
+
+[node name="Back" type="Button" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=1998712538]
+custom_minimum_size = Vector2(0, 50)
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+theme = ExtResource("7_t7svs")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 25
+text = "Back"
+icon = ExtResource("2_1erv5")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Title" type="Label" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=410168649]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_uu8fy")
+theme_override_font_sizes/font_size = 28
+text = "Install Addons"
+horizontal_alignment = 1
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=145888758]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1832858296]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="InstallTablePlugin" type="Control" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1596511995]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+script = ExtResource("3_lyycq")
+header_theme = ExtResource("4_2iuyi")
+header_cell_theme = ExtResource("5_bt30r")
+row_theme = ExtResource("6_1erv5")
+row_cell_theme = ExtResource("7_t7svs")
+cell_separation = 0
+metadata/_custom_type_script = "uid://sx1wgfw6xjis"
+
+[node name="LoadingView" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1213959645 instance=ExtResource("8_bt30r")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+
+[node name="ButtonContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer" unique_id=848772331]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/ButtonContainer" unique_id=1525379976]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+
+[node name="InstallButton" type="Button" parent="PanelContainer/MarginContainer/PageContainer/ButtonContainer" unique_id=897545897]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.5
+theme = ExtResource("7_t7svs")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 0
+theme_override_constants/icon_max_width = 30
+theme_override_constants/align_to_largest_stylebox = 0
+theme_override_font_sizes/font_size = 25
+text = "Install"
+icon = ExtResource("10_t7svs")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Control2" type="Control" parent="PanelContainer/MarginContainer/PageContainer/ButtonContainer" unique_id=151747598]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+
+[connection signal="pressed" from="PanelContainer/MarginContainer/PageContainer/HeaderContainer/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/PageContainer/ButtonContainer/InstallButton" to="." method="_on_install_button_pressed"]

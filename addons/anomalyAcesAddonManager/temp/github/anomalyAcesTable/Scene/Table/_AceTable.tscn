@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://c20kn61e6mfcw"]
+
+[ext_resource type="Script" uid="uid://cjn2xm72r8u0o" path="res://addons/anomalyAcesTable/Scene/Table/_AceTable.gd" id="1_s1d30"]
+
+[node name="AceTable" type="VBoxContainer" unique_id=1103190878]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+script = ExtResource("1_s1d30")
+
+[node name="HeaderPanel" type="PanelContainer" parent="." unique_id=836293281]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="HeaderPanel" unique_id=405845903]
+layout_mode = 2
+
+[node name="HeaderCellContainer" type="HBoxContainer" parent="HeaderPanel/MarginContainer" unique_id=2113574792]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RowPanel" type="PanelContainer" parent="." unique_id=419122773]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 8.0
+mouse_filter = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="RowPanel" unique_id=164038810]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RowPanel/MarginContainer" unique_id=1660903221]
+layout_mode = 2
+vertical_scroll_mode = 3
+
+[node name="RowContainer" type="VBoxContainer" parent="RowPanel/MarginContainer/ScrollContainer" unique_id=1144456611]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://5eoybwwmk442"]
+
+[ext_resource type="Script" uid="uid://tavcrvsb0ecj" path="res://addons/anomalyAcesTable/Scene/Row/_AceTableRow.gd" id="1_s6ni5"]
+
+[node name="Row" type="HBoxContainer" unique_id=221823483]
+custom_minimum_size = Vector2(0, 100)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+script = ExtResource("1_s6ni5")

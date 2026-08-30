@@ -1,0 +1,167 @@
+[gd_scene format=3 uid="uid://depeditor0001"]
+
+[ext_resource type="Script" uid="uid://depeditor0002" path="res://addons/anomalyAcesAddonManager/Scenes/AddonDependencyEditor/addon_dependency_editor.gd" id="1_editor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.0588235, 0.0588235, 0.0784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.0980392, 0.0980392, 0.12549, 1)
+border_width_bottom = 1
+border_color = Color(0.2, 0.2, 0.235294, 1)
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_content"]
+content_margin_left = 24.0
+content_margin_top = 0.0
+content_margin_right = 24.0
+content_margin_bottom = 0.0
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_add_btn"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+bg_color = Color(0.0980392, 0.0980392, 0.12549, 1)
+border_width_top = 1
+border_color = Color(0.2, 0.2, 0.235294, 1)
+
+[node name="AddonDependencyEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_editor")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="VBoxContainer/Header/HBox"]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.58, 1)
+text = "\u2190 Addon Previewer"
+flat = true
+
+[node name="TitleSection" type="VBoxContainer" parent="VBoxContainer/Header/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="VBoxContainer/Header/HBox/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 24
+text = "Addon Dependency Editor"
+
+[node name="Subtitle" type="Label" parent="VBoxContainer/Header/HBox/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.58, 1)
+theme_override_font_sizes/font_size = 14
+text = "Editing: ..."
+
+[node name="Controls" type="HBoxContainer" parent="VBoxContainer/Header/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="FileStatusLabel" type="Label" parent="VBoxContainer/Header/HBox/Controls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "\u26a0 No addons.json found"
+vertical_alignment = 1
+
+[node name="SaveButton" type="Button" parent="VBoxContainer/Header/HBox/Controls"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "\U0001f4be Save addons.json"
+flat = true
+
+[node name="RunScriptButton" type="Button" parent="VBoxContainer/Header/HBox/Controls"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.5, 1)
+text = "\u2699 Apply Changes"
+flat = true
+
+[node name="DependencyListScroll" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DependencyListVBox" type="VBoxContainer" parent="VBoxContainer/DependencyListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ContentMargin" type="MarginContainer" parent="VBoxContainer/DependencyListScroll/DependencyListVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="InnerVBox" type="VBoxContainer" parent="VBoxContainer/DependencyListScroll/DependencyListVBox/ContentMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="AddEntryButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_add_btn")
+theme_override_colors/font_color = Color(0.4, 0.7, 1.0, 1)
+theme_override_font_sizes/font_size = 13
+text = "\uff0b Add Top-Level Dependency"
+
+[node name="OutputDialog" type="AcceptDialog" parent="."]
+title = "Script Output"
+size = Vector2i(600, 400)
+
+[node name="VBox" type="VBoxContainer" parent="OutputDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+
+[node name="OutputText" type="TextEdit" parent="OutputDialog/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+placeholder_text = "(no output)"
+
+[node name="CopyButton" type="Button" parent="OutputDialog/VBox"]
+layout_mode = 2
+text = "\U0001f4cb Copy Command"
+visible = false

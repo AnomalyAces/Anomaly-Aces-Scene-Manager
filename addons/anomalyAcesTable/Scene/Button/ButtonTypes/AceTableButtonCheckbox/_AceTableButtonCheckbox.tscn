@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://4ky0uxba0mpo"]
+
+[ext_resource type="Script" uid="uid://de5wnj0x0id1o" path="res://addons/anomalyAcesTable/Scene/Button/ButtonTypes/AceTableButtonCheckbox/_AceTableButtonCheckbox.gd" id="1_i1yul"]
+[ext_resource type="Shader" uid="uid://drdxj8566up5m" path="res://addons/anomalyAcesTable/Scene/Button/_AceTableButton.gdshader" id="2_t87uj"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i1yul"]
+shader = ExtResource("2_t87uj")
+
+[node name="AceTableButtonCheckbox" type="TextureButton" unique_id=1062516352]
+material = SubResource("ShaderMaterial_i1yul")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_right = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+toggle_mode = true
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("1_i1yul")
+
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

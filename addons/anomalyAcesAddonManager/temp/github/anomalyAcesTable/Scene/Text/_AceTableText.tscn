@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://c8dq4bsom3brv"]
+
+[ext_resource type="Shader" uid="uid://drdxj8566up5m" path="res://addons/anomalyAcesTable/Scene/Button/_AceTableButton.gdshader" id="1_7i3ya"]
+[ext_resource type="Script" uid="uid://bihwdhw68ca5" path="res://addons/anomalyAcesTable/Scene/Text/_AceTableText.gd" id="1_45tem"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_45tem"]
+shader = ExtResource("1_7i3ya")
+
+[node name="AceTableText" type="HBoxContainer" unique_id=857367656]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_45tem")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=278745677]
+material = SubResource("ShaderMaterial_45tem")
+instance_shader_parameters/instance_color = Color(1, 1, 1, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="RichTextLabel" parent="." unique_id=484997036]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+bbcode_enabled = true
+vertical_alignment = 1
+
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="meta_clicked" from="Label" to="." method="_on_label_meta_clicked"]

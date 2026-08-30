@@ -1,0 +1,18 @@
+[
+  {
+    "owner": "anomalyaces",
+    "repo": "Anomaly-Aces-Plugin-Manager",
+    "isRelease": true,
+    "version": "1.0",
+    "branch": "master",
+    "dependencies": [
+      {
+        "owner": "anomalyaces",
+        "repo": "Anomaly-Aces-Util-Plugin",
+        "isRelease": true,
+        "version": "1.0",
+        "branch": "master"
+      }
+    ]
+  }
+]

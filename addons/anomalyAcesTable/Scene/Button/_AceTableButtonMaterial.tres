@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://csgypprnsfy56"]
+
+[ext_resource type="Shader" uid="uid://drdxj8566up5m" path="res://addons/anomalyAcesTable/Scene/Button/_AceTableButton.gdshader" id="1_wxglk"]
+
+[resource]
+shader = ExtResource("1_wxglk")

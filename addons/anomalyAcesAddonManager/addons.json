@@ -1,0 +1,39 @@
+[
+	{
+		"branch": "master",
+		"dependencies": [
+			{
+				"branch": "master",
+				"dependencies": [],
+				"isRelease": false,
+				"owner": "anomalyaces",
+				"repo": "Anomaly-Aces-Util",
+				"subfolder": "addons/anomalyAcesUtil",
+				"version": "1.0"
+			},
+			{
+				"branch": "master",
+				"dependencies": [],
+				"isRelease": false,
+				"owner": "anomalyaces",
+				"repo": "Anomaly-Aces-Log",
+				"subfolder": "addons/anomalyAcesLog",
+				"version": "1.0"
+			},
+			{
+				"branch": "master",
+				"dependencies": [],
+				"isRelease": false,
+				"owner": "anomalyaces",
+				"repo": "Anomaly-Aces-Table",
+				"subfolder": "addons/anomalyAcesTable",
+				"version": "1.0"
+			}
+		],
+		"isRelease": false,
+		"owner": "anomalyaces",
+		"repo": "Anomaly-Aces-Addon-Manager",
+		"subfolder": "addons/anomalyAcesAddonManager",
+		"version": "1.0"
+	}
+]

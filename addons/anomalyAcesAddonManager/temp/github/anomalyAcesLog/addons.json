@@ -1,0 +1,20 @@
+[
+	{
+		"owner": "anomalyaces",
+		"repo": "Anomaly-Aces-Log",
+		"isRelease": false,
+		"version": "1.0",
+		"branch": "master",
+		"subfolder": "addons/anomalyAcesLog",
+		"dependencies": [
+			{
+				"owner": "russmatney",
+				"repo": "log.gd",
+				"isRelease": true,
+				"version": "v0.2.2",
+				"branch": "master",
+				"subfolder": "addons/log"
+			}
+		]
+	}
+]

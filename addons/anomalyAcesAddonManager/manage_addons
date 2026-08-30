@@ -1,0 +1,829 @@
+#!/usr/bin/env bash
+
+# Anomaly Aces Addon Manager Submodule Manager
+# Compatibility: Git Bash, WSL, Linux, macOS
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Detect OS compatibility for directory junctions vs symlinks
+OS_TYPE="$(uname -s | tr '[:upper:]' '[:lower:]')"
+if [[ "$OS_TYPE" == *"mingw"* || "$OS_TYPE" == *"msys"* || "$OS_TYPE" == *"cygwin"* ]]; then
+    IS_WINDOWS=1
+else
+    IS_WINDOWS=0
+fi
+
+show_help() {
+    echo "Anomaly Aces Addon Manager CLI Helper"
+    echo "Usage: ace-am <command> [arguments]"
+    echo ""
+    echo "Commands:"
+    echo "  add <git_url> <addon_name>  Add an addon submodule under submodules/<addon_name> and link it"
+    echo "  remove <addon_name>         Completely remove the addon submodule and its link"
+    echo "  commit <addon_name> <msg>   Stage, commit, and push changes in the specified submodule"
+    echo "  list                        List all installed addons and their submodule git status"
+    echo "  update                      Update all addon submodules to their latest remote commit"
+    echo "  link                        Recreate symbolic links/junctions for all installed addons"
+    echo "  fix-remotes                 Convert all submodule remotes from HTTPS to SSH (for SSH key auth)"
+    echo "  bootstrap                   Download and install all required dependency addons (without git)"
+    echo "  setup                       Install the 'ace-am' command/alias globally in your shell config"
+    echo "  help                        Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ace-am add git@github.com:user/my-addon.git my_addon"
+    echo "  ace-am commit my_addon \"Add new demo scene\""
+    echo "  ace-am fix-remotes"
+    echo "  ace-am remove my_addon"
+    echo "  ace-am list"
+    echo "  ace-am link"
+    echo "  ace-am bootstrap"
+}
+
+create_link() {
+    local target="$1"
+    local link="$2"
+    
+    # Ensure parent directory of link exists
+    mkdir -p "$(dirname "$link")"
+    
+    # Resolve target to absolute path
+    local abs_target
+    abs_target="$(cd "$target" && pwd -P)"
+    
+    # If the link already exists, check target
+    if [ -e "$link" ] || [ -L "$link" ]; then
+        local current_target
+        if current_target="$(cd "$link" 2>/dev/null && pwd -P)"; then
+            local abs_current_target
+            abs_current_target="$(cd "$current_target" && pwd -P)"
+            if [ "$abs_current_target" = "$abs_target" ]; then
+                # Already points to the same target, nothing to do
+                return 0
+            else
+                echo "Warning: Naming collision detected for '$(basename "$link")'!"
+                echo "  Already linked to: $abs_current_target"
+                echo "  Failed to link to: $abs_target"
+                echo "  Godot addons must have unique folder names. Please resolve the naming collision."
+                return 1
+            fi
+        fi
+        # If we couldn't resolve the target but it exists, remove it and re-link
+        remove_link "$link"
+    fi
+    
+    echo "Linking: $link -> $abs_target"
+    if [ "$IS_WINDOWS" -eq 1 ]; then
+        # Windows directory junction
+        local win_target
+        win_target="$(cygpath -w "$abs_target")"
+        local win_link
+        win_link="$(cygpath -w "$link")"
+        MSYS_NO_PATHCONV=1 cmd.exe /c mklink /j "$win_link" "$win_target" >/dev/null
+    else
+        # Unix/Linux/macOS/WSL symbolic link
+        ln -s "$abs_target" "$link"
+    fi
+}
+
+remove_link() {
+    local link="$1"
+    if [ -e "$link" ] || [ -L "$link" ]; then
+        if [ "$IS_WINDOWS" -eq 1 ]; then
+            # Safe removal of directory junction on Windows
+            local win_link
+            win_link="$(cygpath -w "$link")"
+            if [ -d "$link" ]; then
+                MSYS_NO_PATHCONV=1 cmd.exe /c rmdir "$win_link" 2>/dev/null
+            else
+                rm -f "$link"
+            fi
+        else
+            rm -rf "$link"
+        fi
+    fi
+}
+
+# Converts the current repo's origin remote from HTTPS to SSH (GitHub)
+ensure_ssh_remote() {
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    if [[ "$remote_url" == https://github.com/* ]]; then
+        local ssh_url
+        ssh_url="git@github.com:${remote_url#https://github.com/}"
+        # Normalise .git suffix
+        [[ "$ssh_url" != *.git ]] && ssh_url="${ssh_url}.git"
+        echo "Switching remote origin to SSH: $ssh_url"
+        git remote set-url origin "$ssh_url"
+    fi
+}
+
+remove_gdignore_safely() {
+    # Files to remove and assume-unchanged
+    local files=(
+        "addons/anomalyAcesAddonManager/Scripts/.gdignore"
+        "addons/anomalyAcesAddonManager/Scenes/.gdignore"
+    )
+    for file in "${files[@]}"; do
+        local target_file="$PROJECT_ROOT/$file"
+        if [ -f "$target_file" ]; then
+            echo "Removing temporary .gdignore from $(dirname "$file")..."
+            if [ -d "$PROJECT_ROOT/.git" ]; then
+                (
+                    cd "$PROJECT_ROOT" || exit 1
+                    git update-index --assume-unchanged "$file" 2>/dev/null
+                )
+            fi
+            rm -f "$target_file"
+        fi
+    done
+}
+
+clear_submodule_links() {
+    if [ -d addons ]; then
+        for link in addons/*; do
+            [ -e "$link" ] || [ -L "$link" ] || continue
+            
+            local target_dir
+            target_dir=$(readlink "$link" 2>/dev/null)
+            
+            # Fallback to cd and pwd if readlink is not available or empty
+            if [ -z "$target_dir" ]; then
+                target_dir="$(cd "$link" 2>/dev/null && pwd -P)"
+            fi
+            
+            if [ -n "$target_dir" ]; then
+                local abs_submodules
+                abs_submodules="$(cd "$PROJECT_ROOT/submodules" 2>/dev/null && pwd -P)"
+                if [[ -n "$abs_submodules" && "$target_dir" == "$abs_submodules"/* ]]; then
+                    remove_link "$link"
+                fi
+            fi
+        done
+    fi
+}
+
+link_all_addons() {
+    remove_gdignore_safely
+    clear_submodule_links
+    
+    if [ ! -d submodules ]; then
+        return
+    fi
+    
+    local primary_temp
+    primary_temp=$(mktemp)
+    local secondary_temp
+    secondary_temp=$(mktemp)
+    
+    for sub_dir in submodules/*; do
+        [ -d "$sub_dir" ] || continue
+        local sub_name
+        sub_name=$(basename "$sub_dir")
+        
+        # We will collect list of directories to link for this submodule
+        # Format: "addon_dir|addon_folder"
+        local candidates_temp
+        candidates_temp=$(mktemp)
+        
+        # Check if the submodule has an addons/ directory
+        if [ -d "$sub_dir/addons" ]; then
+            # Scan all subdirectories in sub_dir/addons/*
+            for addon_dir in "$sub_dir/addons"/*; do
+                [ -d "$addon_dir" ] || continue
+                local addon_folder
+                addon_folder=$(basename "$addon_dir")
+                echo "$addon_dir|$addon_folder" >> "$candidates_temp"
+            done
+        else
+            # Search for plugin.cfg files in this submodule
+            local configs
+            configs=$(find "$sub_dir" -name "plugin.cfg" 2>/dev/null)
+            
+            if [ -z "$configs" ]; then
+                # Fallback: No plugin.cfg found and no addons/ folder, link the root as primary
+                echo "$sub_dir|$sub_name" >> "$candidates_temp"
+            else
+                while read -r config_path; do
+                    [ -z "$config_path" ] && continue
+                    local addon_dir
+                    addon_dir=$(dirname "$config_path")
+                    local addon_folder
+                    addon_folder=$(basename "$addon_dir")
+                    echo "$addon_dir|$addon_folder" >> "$candidates_temp"
+                done <<< "$configs"
+            fi
+        fi
+        
+        # Process candidates for this submodule to classify them as Primary or Secondary
+        if [ -f "$candidates_temp" ]; then
+            # Count candidates
+            local cand_count
+            cand_count=$(grep -c "^" "$candidates_temp")
+            
+            while IFS='|' read -r addon_dir addon_folder; do
+                [ -z "$addon_dir" ] && continue
+                
+                local is_primary=0
+                
+                # Scenario A: Exactly 1 addon folder in this submodule
+                if [ "$cand_count" -eq 1 ]; then
+                    is_primary=1
+                else
+                    # Scenario B: Multiple addon folders. Compare normalized names.
+                    local norm_sub
+                    norm_sub=$(echo "$sub_name" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+                    local norm_addon
+                    norm_addon=$(echo "$addon_folder" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+                    
+                    if [[ "$norm_addon" == "$norm_sub" || "$norm_sub" == *"$norm_addon"* || "$norm_addon" == *"$norm_sub"* ]]; then
+                        is_primary=1
+                    fi
+                fi
+                
+                if [ "$is_primary" -eq 1 ]; then
+                    echo "$addon_dir|$addon_folder" >> "$primary_temp"
+                else
+                    echo "$addon_dir|$addon_folder" >> "$secondary_temp"
+                fi
+            done < "$candidates_temp"
+            rm -f "$candidates_temp"
+        fi
+    done
+    
+    # Pass 1: Link all primary/main addons
+    if [ -f "$primary_temp" ]; then
+        while IFS='|' read -r addon_dir addon_folder; do
+            [ -z "$addon_dir" ] && continue
+            create_link "$addon_dir" "addons/$addon_folder"
+        done < "$primary_temp"
+        rm -f "$primary_temp"
+    fi
+    
+    # Pass 2: Link all secondary/snapshot dependency addons (only if link target is still empty)
+    if [ -f "$secondary_temp" ]; then
+        while IFS='|' read -r addon_dir addon_folder; do
+            [ -z "$addon_dir" ] && continue
+            local link_path="addons/$addon_folder"
+            if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
+                create_link "$addon_dir" "$link_path"
+            else
+                echo "Skipping snapshot/dependency addon '$addon_folder' from '$addon_dir' (primary addon already linked)."
+            fi
+        done < "$secondary_temp"
+        rm -f "$secondary_temp"
+    fi
+}
+
+cmd_add() {
+    local url="$1"
+    local name="$2"
+
+    if [ -z "$url" ] || [ -z "$name" ]; then
+        echo "Error: Missing arguments."
+        echo "Usage: ace-am add <ssh_git_url> <addon_name>"
+        echo "Example: ace-am add git@github.com:user/my-addon.git my_addon"
+        exit 1
+    fi
+
+    # Only SSH URLs are supported — HTTPS has no auth support
+    if [[ "$url" == https://* ]]; then
+        echo "Error: HTTPS URLs are not supported. Only SSH authentication is used."
+        echo "Convert your URL to SSH format:"
+        local ssh_suggestion
+        ssh_suggestion=$(echo "$url" | sed 's|https://github.com/|git@github.com:|')
+        echo "  $ssh_suggestion"
+        exit 1
+    fi
+
+    cd "$PROJECT_ROOT" || exit 1
+    
+    # Check if this URL is already registered in .gitmodules
+    if [ -f .gitmodules ]; then
+        local search_url="$url"
+        search_url="${search_url%.git}"
+        search_url="${search_url%/}"
+        
+        while read -r key val; do
+            [ -z "$key" ] && continue
+            local norm_val="${val%.git}"
+            norm_val="${norm_val%/}"
+            
+            if [ "$norm_val" = "$search_url" ]; then
+                local existing_path
+                existing_path=$(echo "$key" | sed -n 's/^submodule\.\(.*\)\.url$/\1/p')
+                echo "Warning: The repository '$url' is already registered in this project!"
+                echo "  Existing submodule path: $existing_path"
+                echo "  Verifying links and skipping redundant submodule registration."
+                link_all_addons
+                exit 0
+            fi
+        done <<< "$(git config --file .gitmodules --get-regexp "submodule\..*\.url" 2>/dev/null)"
+    fi
+    
+    # Ensure submodules directory exists
+    mkdir -p submodules
+    touch submodules/.gdignore
+    
+    local sub_path="submodules/$name"
+    
+    if [ -d "$sub_path" ]; then
+        echo "Error: Submodule directory '$sub_path' already exists."
+        exit 1
+    fi
+    
+    echo "Adding submodule '$name' from '$url'..."
+    git submodule add "$url" "$sub_path"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to add git submodule."
+        exit 1
+    fi
+    
+    echo "Initializing and updating submodule..."
+    git submodule update --init --recursive "$sub_path"
+    
+    # Scan and link addon(s)
+    echo "Scanning submodule layout..."
+    link_all_addons
+    
+    echo "Successfully added and linked addon(s) for '$name'!"
+}
+
+cmd_remove() {
+    local name="$1"
+    
+    if [ -z "$name" ]; then
+        echo "Error: Missing addon name."
+        echo "Usage: ace-am remove <addon_name>"
+        exit 1
+    fi
+    
+    cd "$PROJECT_ROOT" || exit 1
+    local sub_path="submodules/$name"
+    
+    if [ ! -d "$sub_path" ] && ! git config --file .gitmodules --get "submodule.submodules/$name.path" >/dev/null 2>&1; then
+        echo "Error: Addon '$name' does not exist as a submodule."
+        exit 1
+    fi
+    
+    echo "Removing submodule '$name'..."
+    
+    # 1. Deinit submodule
+    git submodule deinit -f "$sub_path" 2>/dev/null
+    
+    # 2. Remove git directory
+    git rm -f "$sub_path" 2>/dev/null
+    
+    # 3. Clean up git internal modules directory if it exists
+    if [ -d ".git/modules/$sub_path" ]; then
+        rm -rf ".git/modules/$sub_path"
+    fi
+    
+    # 4. Clean up folder if anything remains
+    if [ -d "$sub_path" ]; then
+        rm -rf "$sub_path"
+    fi
+    
+    # Rebuild links for remaining submodules
+    link_all_addons
+    
+    echo "Successfully removed addon '$name' and its git cache!"
+}
+
+cmd_list() {
+    cd "$PROJECT_ROOT" || exit 1
+    echo "=== Installed Addon Submodules ==="
+    git submodule status
+    echo ""
+    echo "Active folders under addons/:"
+    if [ -d addons ]; then
+        ls -F addons/ | grep '/' | sed 's/\///'
+    else
+        echo "(No addons directory found)"
+    fi
+}
+
+cmd_update() {
+    cd "$PROJECT_ROOT" || exit 1
+
+    # Ensure all submodule remotes use SSH before fetching
+    echo "Checking submodule remote URLs..."
+    for sub_dir in submodules/*/; do
+        [ -d "$sub_dir" ] || continue
+        if [ -d "$sub_dir/.git" ] || [ -f "$sub_dir/.git" ]; then
+            (
+                cd "$sub_dir" || exit 0
+                ensure_ssh_remote
+            )
+        fi
+    done
+
+    echo "Updating all submodules to latest remote commits..."
+    git submodule update --init --recursive --remote
+
+    # Re-link just in case structure updated
+    echo "Verifying links..."
+    link_all_addons
+    echo "Submodules updated and re-linked!"
+}
+
+cmd_commit() {
+    local name="$1"
+    local msg="$2"
+    
+    if [ -z "$name" ] || [ -z "$msg" ]; then
+        echo "Error: Missing arguments."
+        echo "Usage: ace-am commit <addon_name> <commit_message>"
+        exit 1
+    fi
+    
+    cd "$PROJECT_ROOT" || exit 1
+    local sub_path="submodules/$name"
+    
+    if [ ! -d "$sub_path" ]; then
+        echo "Error: Submodule directory '$sub_path' does not exist."
+        exit 1
+    fi
+    
+    echo "Staging, committing, and pushing changes in submodule '$name'..."
+    (
+        cd "$sub_path" || exit 1
+
+        # Ensure remote is SSH before any network operation
+        ensure_ssh_remote
+
+        # Stage and commit any uncommitted local changes
+        if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+
+            git commit -m "$msg"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to commit changes in submodule '$name'."
+                exit 1
+            fi
+            echo "Committed changes in submodule '$name'."
+        else
+            echo "No uncommitted changes in '$name' — checking for unpushed commits..."
+        fi
+
+        # Always push if the branch is ahead of its remote tracking branch
+        local unpushed
+        unpushed=$(git log @{u}.. --oneline 2>/dev/null)
+        if [ -n "$unpushed" ]; then
+            echo "Pushing unpushed commits upstream..."
+            git push
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to push changes for submodule '$name'."
+                exit 1
+            fi
+            echo "Successfully pushed changes for submodule '$name'!"
+        else
+            echo "Nothing to push — submodule '$name' is up to date with remote."
+        fi
+    )
+}
+
+cmd_fix_remotes() {
+    cd "$PROJECT_ROOT" || exit 1
+    echo "Converting all submodule remotes from HTTPS to SSH..."
+    local fixed=0
+    for sub_dir in submodules/*/; do
+        [ -d "$sub_dir" ] || continue
+        if [ -d "$sub_dir/.git" ] || [ -f "$sub_dir/.git" ]; then
+            (
+                cd "$sub_dir" || exit 0
+                ensure_ssh_remote
+            ) && fixed=$((fixed + 1))
+        fi
+    done
+    echo "Done. Checked $fixed submodule(s)."
+}
+
+cmd_bootstrap() {
+    cd "$PROJECT_ROOT" || exit 1
+    remove_gdignore_safely
+    
+    echo "=== Ace Addon Manager Bootstrapper ==="
+    echo "This command will download the required addon dependencies directly from GitHub"
+    echo "using addons.json files, and install them to your local addons/ directory."
+    echo ""
+    
+    # Ensure addons/ exists
+    mkdir -p addons
+    
+    # Temporary directory for zip downloads
+    local temp_dir="addons/anomalyAcesAddonManager/temp/bootstrap"
+    mkdir -p "$temp_dir"
+    
+    # Check for download tool
+    local downloader=""
+    if command -v curl >/dev/null 2>&1; then
+        downloader="curl"
+    elif command -v wget >/dev/null 2>&1; then
+        downloader="wget"
+    else
+        echo "Error: Neither 'curl' nor 'wget' was found in your PATH."
+        echo "Please install curl or wget to download dependencies."
+        exit 1
+    fi
+    
+    # Check for unzip tool
+    local has_unzip=0
+    if command -v unzip >/dev/null 2>&1; then
+        has_unzip=1
+    elif [ "$IS_WINDOWS" -eq 1 ] && command -v powershell.exe >/dev/null 2>&1; then
+        has_unzip=2
+    else
+        echo "Error: 'unzip' utility not found."
+        echo "Please install unzip or ensure powershell.exe is available on Windows."
+        exit 1
+    fi
+    
+    # Maintain a queue of addons.json files to parse.
+    # Start with the main plugin's addons.json.
+    local queue=("addons/anomalyAcesAddonManager/addons.json")
+    local processed_repos=()
+    
+    # Process queue recursively
+    local head=0
+    while [ "$head" -lt "${#queue[@]}" ]; do
+        local json_file="${queue[$head]}"
+        head=$((head + 1))
+        
+        if [ ! -f "$json_file" ]; then
+            continue
+        fi
+        
+        echo "Parsing dependencies from: $json_file"
+        
+        # Parse dependencies from current addons.json
+        local deps_list=()
+        local in_dependencies=0
+        local bracket_depth=0
+        local owner="" repo="" branch="" is_release="" version="" subfolder=""
+        
+        while read -r line || [ -n "$line" ]; do
+            # Trim line
+            line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            
+            if [[ "$line" == "\"dependencies\":"* ]]; then
+                in_dependencies=1
+                continue
+            fi
+            
+            if [ "$in_dependencies" -eq 1 ]; then
+                if [[ "$line" == "["* ]]; then
+                    bracket_depth=$((bracket_depth + 1))
+                    continue
+                fi
+                if [[ "$line" == "]"* ]]; then
+                    bracket_depth=$((bracket_depth - 1))
+                    if [ "$bracket_depth" -le 0 ]; then
+                        in_dependencies=0
+                    fi
+                    continue
+                fi
+                
+                if [[ "$line" == "{"* ]]; then
+                    owner=""
+                    repo=""
+                    branch=""
+                    is_release=""
+                    version=""
+                    subfolder=""
+                elif [[ "$line" == "\"owner\":"* ]]; then
+                    owner=$(echo "$line" | sed -E 's/.*"owner":[[:space:]]*"([^"]*)".*/\1/')
+                elif [[ "$line" == "\"repo\":"* ]]; then
+                    repo=$(echo "$line" | sed -E 's/.*"repo":[[:space:]]*"([^"]*)".*/\1/')
+                elif [[ "$line" == "\"branch\":"* ]]; then
+                    branch=$(echo "$line" | sed -E 's/.*"branch":[[:space:]]*"([^"]*)".*/\1/')
+                elif [[ "$line" == "\"isRelease\":"* ]]; then
+                    is_release=$(echo "$line" | sed -E 's/.*"isRelease":[[:space:]]*([^,]*).*/\1/')
+                elif [[ "$line" == "\"version\":"* ]]; then
+                    version=$(echo "$line" | sed -E 's/.*"version":[[:space:]]*"([^"]*)".*/\1/')
+                elif [[ "$line" == "\"subfolder\":"* ]]; then
+                    subfolder=$(echo "$line" | sed -E 's/.*"subfolder":[[:space:]]*"([^"]*)".*/\1/')
+                elif [[ "$line" == "}"* ]]; then
+                    if [ -n "$repo" ]; then
+                        deps_list+=("$owner|$repo|$branch|$is_release|$version|$subfolder")
+                    fi
+                fi
+            fi
+        done < "$json_file"
+        
+        # Process each dependency found
+        for dep in "${deps_list[@]}"; do
+            owner=$(echo "$dep" | cut -d'|' -f1)
+            repo=$(echo "$dep" | cut -d'|' -f2)
+            branch=$(echo "$dep" | cut -d'|' -f3)
+            is_release=$(echo "$dep" | cut -d'|' -f4)
+            version=$(echo "$dep" | cut -d'|' -f5)
+            subfolder=$(echo "$dep" | cut -d'|' -f6)
+            
+            # Skip if we already processed this repo
+            local already_processed=0
+            for r in "${processed_repos[@]}"; do
+                if [ "$r" = "$repo" ]; then
+                    already_processed=1
+                    break
+                fi
+            done
+            
+            if [ "$already_processed" -eq 1 ]; then
+                continue
+            fi
+            
+            processed_repos+=("$repo")
+            
+            # Determine download parameters
+            local ref="$branch"
+            local ref_type="heads"
+            if [ "$is_release" = "true" ]; then
+                ref="$version"
+                ref_type="tags"
+            fi
+            
+            local zip_url="https://github.com/$owner/$repo/archive/refs/$ref_type/$ref.zip"
+            local zip_file="$temp_dir/$repo.zip"
+            local extract_to="$temp_dir/$repo-extracted"
+            
+            echo "--------------------------------------------------"
+            echo "Downloading dependency: $repo ($ref)..."
+            
+            if [ "$downloader" = "curl" ]; then
+                if [ "$IS_WINDOWS" -eq 1 ]; then
+                    curl -L --ssl-no-revoke -s -o "$zip_file" "$zip_url"
+                else
+                    curl -L -s -o "$zip_file" "$zip_url"
+                fi
+            else
+                wget -q -O "$zip_file" "$zip_url"
+            fi
+            
+            if [ ! -f "$zip_file" ] || [ ! -s "$zip_file" ]; then
+                echo "Error: Failed to download $repo from $zip_url"
+                rm -rf "$temp_dir"
+                exit 1
+            fi
+            
+            echo "Extracting..."
+            mkdir -p "$extract_to"
+            if [ "$has_unzip" -eq 1 ]; then
+                unzip -q -o "$zip_file" -d "$extract_to"
+            elif [ "$has_unzip" -eq 2 ]; then
+                local win_zip
+                win_zip=$(cygpath -w "$zip_file")
+                local win_dest
+                win_dest=$(cygpath -w "$extract_to")
+                powershell.exe -NoProfile -Command "Expand-Archive -Path '$win_zip' -DestinationPath '$win_dest' -Force" >/dev/null
+            fi
+            
+            # Find the archive folder root dynamically using shell wildcard
+            local archive_roots=("$extract_to"/*/)
+            local archive_root="${archive_roots[0]%/}"
+            
+            if [ ! -d "$archive_root" ]; then
+                echo "Error: Could not locate extracted archive directory for $repo."
+                rm -rf "$temp_dir"
+                exit 1
+            fi
+            
+            # Locate the source folder to copy
+            local full_src_path="$archive_root/$subfolder"
+            
+            # Fallback checks if the structure differs (e.g. without addons prefix)
+            if [ ! -d "$full_src_path" ]; then
+                local rel_fold
+                rel_fold=$(basename "$subfolder")
+                if [ -d "$archive_root/addons/$rel_fold" ]; then
+                    full_src_path="$archive_root/addons/$rel_fold"
+                elif [ -d "$archive_root/$rel_fold" ]; then
+                    full_src_path="$archive_root/$rel_fold"
+                fi
+            fi
+            
+            local target_fold
+            target_fold=$(basename "$subfolder")
+            local full_dest_path="addons/$target_fold"
+            
+            if [ -d "$full_src_path" ]; then
+                echo "Installing to $full_dest_path..."
+                if [ -d "$full_dest_path" ] || [ -L "$full_dest_path" ]; then
+                    remove_link "$full_dest_path"
+                    rm -rf "$full_dest_path"
+                fi
+                cp -r "$full_src_path" "$full_dest_path"
+                echo "Successfully installed $target_fold!"
+                
+                # Check if this newly installed addon has its own addons.json to parse
+                local next_json="$full_dest_path/addons.json"
+                if [ -f "$next_json" ]; then
+                    queue+=("$next_json")
+                fi
+            else
+                echo "Error: Could not find path $subfolder after extracting $repo."
+                rm -rf "$temp_dir"
+                exit 1
+            fi
+        done
+    done
+    
+    # Clean up temp files
+    rm -rf "$temp_dir"
+    echo "--------------------------------------------------"
+    echo "All dependencies resolved and installed successfully!"
+    echo "You can now enable the 'Ace Addon Manager' plugin in Godot."
+}
+
+cmd_setup() {
+    local shell_config=""
+    
+    # Identify shell config file
+    if [ -n "$BASH_VERSION" ]; then
+        if [ -f "$HOME/.bashrc" ]; then
+            shell_config="$HOME/.bashrc"
+        elif [ -f "$HOME/.bash_profile" ]; then
+            shell_config="$HOME/.bash_profile"
+        else
+            shell_config="$HOME/.bashrc"
+        fi
+    elif [ -n "$ZSH_VERSION" ]; then
+        shell_config="$HOME/.zshrc"
+    else
+        shell_config="$HOME/.bashrc"
+    fi
+    
+    echo "Configuring alias 'ace-am' in '$shell_config'..."
+    
+    # Ensure config file exists
+    touch "$shell_config"
+    
+    # Clean up legacy block if it exists
+    if grep -q "Anomaly Aces Addon Previewer Command Helper" "$shell_config" 2>/dev/null && ! grep -q "ANOMALY ACES ADDON PREVIEWER START" "$shell_config" 2>/dev/null; then
+        echo "Removing legacy configuration..."
+        sed '/# Anomaly Aces Addon Previewer Command Helper/,/}/d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+    
+    # Clean up previewer marked block if it exists
+    if grep -q "ANOMALY ACES ADDON PREVIEWER START" "$shell_config" 2>/dev/null; then
+        echo "Updating existing Previewer configuration..."
+        sed '/# >>> ANOMALY ACES ADDON PREVIEWER START >>>/,/# <<< ANOMALY ACES ADDON PREVIEWER END <<</d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+
+    # Clean up manager marked block if it exists
+    if grep -q "ANOMALY ACES ADDON MANAGER START" "$shell_config" 2>/dev/null; then
+        echo "Updating existing Manager configuration..."
+        sed '/# >>> ANOMALY ACES ADDON MANAGER START >>>/,/# <<< ANOMALY ACES ADDON MANAGER END <<</d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+    
+    # Append fresh marked block
+    cat << EOF >> "$shell_config"
+
+# >>> ANOMALY ACES ADDON MANAGER START >>>
+# Anomaly Aces Addon Manager Command Helper
+ace-am() {
+    "$PROJECT_ROOT/addons/anomalyAcesAddonManager/manage_addons" "\$@"
+}
+# <<< ANOMALY ACES ADDON MANAGER END <<<
+EOF
+    echo "Successfully updated 'ace-am' command function in '$shell_config'!"
+    echo "Please restart your shell or run: source '$shell_config'"
+}
+
+# Main command dispatcher
+case "$1" in
+    add)
+        cmd_add "$2" "$3"
+        ;;
+    remove)
+        cmd_remove "$2"
+        ;;
+    commit)
+        cmd_commit "$2" "$3"
+        ;;
+    list)
+        cmd_list
+        ;;
+    update)
+        cmd_update
+        ;;
+    link)
+        echo "Recreating addon links..."
+        cd "$PROJECT_ROOT" || exit 1
+        link_all_addons
+        echo "Successfully recreated addon links!"
+        ;;
+    fix-remotes)
+        cmd_fix_remotes
+        ;;
+    setup)
+        cmd_setup
+        ;;
+    bootstrap)
+        cmd_bootstrap
+        ;;
+    help|* )
+        show_help
+        ;;
+esac

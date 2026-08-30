@@ -1,0 +1,232 @@
+[gd_scene format=3 uid="uid://cp6jkh5oiekiu"]
+
+[ext_resource type="Script" uid="uid://bbk4m35tco4me" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/GithubPAT/ace_plugin_github_pat_view.gd" id="1_4qfn1"]
+[ext_resource type="Theme" uid="uid://byewiscuxyxda" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-RowCellTheme.tres" id="2_3smj0"]
+[ext_resource type="Texture2D" uid="uid://cteynqempaseb" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonBack.svg" id="3_5tkj5"]
+[ext_resource type="FontFile" uid="uid://cpb0xvgcv3wdl" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Medium.ttf" id="4_iiqbm"]
+[ext_resource type="FontFile" uid="uid://dnoh4wya6wrde" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Bold.ttf" id="5_4qfn1"]
+[ext_resource type="Texture2D" uid="uid://cb78m3lmpsaxm" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonVerifySettings.svg" id="5_fttpx"]
+[ext_resource type="FontFile" uid="uid://khvk7achqr3t" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-SemiBoldItalic.ttf" id="6_3smj0"]
+[ext_resource type="FontFile" uid="uid://csknraugtg53m" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Italic.ttf" id="7_5tkj5"]
+[ext_resource type="PackedScene" uid="uid://cd0aapc45wg2k" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Loading/LoadingView.tscn" id="9_2u2jl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4qfn1"]
+bg_color = Color(0.0006904672, 0.02125666, 0.04044265, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3smj0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5tkj5"]
+
+[sub_resource type="Theme" id="Theme_iiqbm"]
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_4qfn1")
+RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_3smj0")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_5tkj5")
+
+[node name="GithubPat" type="Control" unique_id=2058642828]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4qfn1")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1967397481]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_iiqbm")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=746525800]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="PageContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=259246943]
+layout_mode = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer" unique_id=428268113]
+layout_mode = 2
+alignment = 1
+
+[node name="Back" type="Button" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=805815278]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+theme = ExtResource("2_3smj0")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 25
+text = "Back"
+icon = ExtResource("3_5tkj5")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Title" type="Label" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=1841298392]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_iiqbm")
+theme_override_font_sizes/font_size = 28
+text = "Github Personal Access Token"
+horizontal_alignment = 1
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/HeaderContainer" unique_id=497272274]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="PATContent" type="VBoxContainer" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1792165454]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 32
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent" unique_id=1247885310]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="TokenInputContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer/PATContent" unique_id=47021974]
+layout_mode = 2
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/TokenInputContainer" unique_id=982138515]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.7
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/PageContainer/PATContent/TokenInputContainer" unique_id=402834074]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_iiqbm")
+theme_override_font_sizes/font_size = 25
+text = "Token"
+
+[node name="TokenInput" type="LineEdit" parent="PanelContainer/MarginContainer/PageContainer/PATContent/TokenInputContainer" unique_id=299579535]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_3smj0")
+alignment = 1
+caret_blink = true
+caret_force_displayed = true
+secret = true
+
+[node name="Control2" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/TokenInputContainer" unique_id=136320361]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.7
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer/PATContent" unique_id=820625542]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/HBoxContainer" unique_id=1473558683]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TokenStatusContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/PageContainer/PATContent/HBoxContainer" unique_id=139346971]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="TokenStatus" type="RichTextLabel" parent="PanelContainer/MarginContainer/PageContainer/PATContent/HBoxContainer/TokenStatusContainer" unique_id=21887858]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+theme_override_fonts/normal_font = ExtResource("4_iiqbm")
+theme_override_fonts/bold_font = ExtResource("5_4qfn1")
+theme_override_fonts/bold_italics_font = ExtResource("6_3smj0")
+theme_override_fonts/italics_font = ExtResource("7_5tkj5")
+theme_override_font_sizes/normal_font_size = 22
+theme_override_font_sizes/bold_font_size = 22
+theme_override_font_sizes/bold_italics_font_size = 22
+theme_override_font_sizes/italics_font_size = 22
+theme_override_font_sizes/mono_font_size = 22
+bbcode_enabled = true
+fit_content = true
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TokenNotes" type="RichTextLabel" parent="PanelContainer/MarginContainer/PageContainer/PATContent/HBoxContainer/TokenStatusContainer" unique_id=1716126703]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 75)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/normal_font = ExtResource("4_iiqbm")
+theme_override_fonts/bold_font = ExtResource("5_4qfn1")
+theme_override_fonts/bold_italics_font = ExtResource("6_3smj0")
+theme_override_fonts/italics_font = ExtResource("7_5tkj5")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/bold_font_size = 18
+theme_override_font_sizes/bold_italics_font_size = 18
+theme_override_font_sizes/italics_font_size = 18
+theme_override_font_sizes/mono_font_size = 18
+bbcode_enabled = true
+scroll_following = true
+vertical_alignment = 1
+
+[node name="Control2" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/HBoxContainer" unique_id=933596596]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Control2" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent" unique_id=1688071023]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/PageContainer/PATContent" unique_id=227412145]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Control" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/ButtonContainer" unique_id=815681799]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="CheckButton" type="Button" parent="PanelContainer/MarginContainer/PageContainer/PATContent/ButtonContainer" unique_id=1543403430]
+custom_minimum_size = Vector2(0, 50)
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.5
+theme = ExtResource("2_3smj0")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 0
+theme_override_constants/icon_max_width = 30
+theme_override_constants/align_to_largest_stylebox = 0
+theme_override_font_sizes/font_size = 25
+text = "Check Token"
+icon = ExtResource("5_fttpx")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Control2" type="Control" parent="PanelContainer/MarginContainer/PageContainer/PATContent/ButtonContainer" unique_id=1951377985]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="LoadingView" parent="PanelContainer/MarginContainer/PageContainer" unique_id=1213959645 instance=ExtResource("9_2u2jl")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1356283695]
+
+[connection signal="pressed" from="PanelContainer/MarginContainer/PageContainer/HeaderContainer/Back" to="." method="_on_back_pressed"]
+[connection signal="text_submitted" from="PanelContainer/MarginContainer/PageContainer/PATContent/TokenInputContainer/TokenInput" to="." method="_on_line_edit_text_submitted"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/PageContainer/PATContent/ButtonContainer/CheckButton" to="." method="_on_check_button_pressed"]

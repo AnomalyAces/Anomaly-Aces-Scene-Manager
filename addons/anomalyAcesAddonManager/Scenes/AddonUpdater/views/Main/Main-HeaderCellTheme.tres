@@ -1,0 +1,65 @@
+[gd_resource type="Theme" format=3 uid="uid://dvm3ul1pd018w"]
+
+[ext_resource type="FontFile" uid="uid://c7aukbcnpi3gy" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Regular.ttf" id="1_nmtgr"]
+[ext_resource type="FontFile" uid="uid://dnoh4wya6wrde" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Bold.ttf" id="2_lnwpu"]
+[ext_resource type="FontFile" uid="uid://b3rarh40dh71o" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-BoldItalic.ttf" id="3_4x8po"]
+[ext_resource type="FontFile" uid="uid://csknraugtg53m" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Italic.ttf" id="4_0vro1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8unve"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yr6qx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nmtgr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hy7am"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3b1h6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uhayg"]
+bg_color = Color(0.32156864, 0.32156864, 0.32156864, 0)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lnwpu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4x8po"]
+
+[resource]
+Button/colors/font_color = Color(0.875, 0.875, 0.875, 1)
+Button/colors/font_disabled_color = Color(0.57128096, 0.533605, 0.533605, 1)
+Button/colors/font_focus_color = Color(0.28217474, 0.69175977, 0.93670857, 1)
+Button/colors/font_hover_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/font_hover_pressed_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/font_pressed_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/icon_disabled_color = Color(0.57254905, 0.53333336, 0.53333336, 1)
+Button/colors/icon_focus_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/icon_hover_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/icon_hover_pressed_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/colors/icon_normal_color = Color(0.8745098, 0.8745098, 0.8745098, 1)
+Button/colors/icon_pressed_color = Color(0.28235295, 0.6901961, 0.9372549, 1)
+Button/font_sizes/font_size = 23
+Button/fonts/font = ExtResource("1_nmtgr")
+Button/styles/disabled = SubResource("StyleBoxEmpty_8unve")
+Button/styles/focus = SubResource("StyleBoxEmpty_yr6qx")
+Button/styles/hover = SubResource("StyleBoxEmpty_nmtgr")
+Button/styles/normal = SubResource("StyleBoxEmpty_hy7am")
+Button/styles/pressed = SubResource("StyleBoxEmpty_3b1h6")
+Label/colors/font_color = Color(0.8745098, 0.8745098, 0.8745098, 1)
+Label/font_sizes/font_size = 23
+Label/fonts/font = ExtResource("1_nmtgr")
+MarginContainer/constants/margin_bottom = 8
+MarginContainer/constants/margin_left = 8
+MarginContainer/constants/margin_right = 8
+MarginContainer/constants/margin_top = 8
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_uhayg")
+RichTextLabel/colors/default_color = Color(0.8745098, 0.8745098, 0.8745098, 1)
+RichTextLabel/font_sizes/bold_font_size = 23
+RichTextLabel/font_sizes/bold_italics_font_size = 23
+RichTextLabel/font_sizes/italics_font_size = 23
+RichTextLabel/font_sizes/mono_font_size = 23
+RichTextLabel/font_sizes/normal_font_size = 23
+RichTextLabel/fonts/bold_font = ExtResource("2_lnwpu")
+RichTextLabel/fonts/bold_italics_font = ExtResource("3_4x8po")
+RichTextLabel/fonts/italics_font = ExtResource("4_0vro1")
+RichTextLabel/fonts/mono_font = ExtResource("1_nmtgr")
+RichTextLabel/fonts/normal_font = ExtResource("1_nmtgr")
+RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_lnwpu")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_4x8po")

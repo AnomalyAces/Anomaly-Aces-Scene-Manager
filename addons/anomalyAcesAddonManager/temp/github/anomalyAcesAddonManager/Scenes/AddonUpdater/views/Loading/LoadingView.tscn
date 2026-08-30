@@ -1,0 +1,116 @@
+[gd_scene format=3 uid="uid://cd0aapc45wg2k"]
+
+[ext_resource type="Script" uid="uid://cmct7whojs8bq" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Loading/LoadingView.gd" id="1_n35by"]
+[ext_resource type="Texture2D" uid="uid://cqba8a11uv8xp" path="res://addons/anomalyAcesAddonManager/Icons/Loading.svg" id="2_4xmj6"]
+
+[sub_resource type="Animation" id="Animation_33fj5"]
+resource_name = "Loading"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Logo:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.2831855]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Label:visible_characters")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0, 10]
+}
+
+[sub_resource type="Animation" id="Animation_x7ajm"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Logo:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Label:visible_characters")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ptb36"]
+_data = {
+&"Loading": SubResource("Animation_33fj5"),
+&"RESET": SubResource("Animation_x7ajm")
+}
+
+[node name="Loading" type="Control" unique_id=1213959645]
+custom_minimum_size = Vector2(54, 54)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_n35by")
+
+[node name="Logo" type="TextureRect" parent="." unique_id=147009683]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35900003
+anchor_top = 0.25
+anchor_right = 0.64100003
+anchor_bottom = 0.75000006
+offset_left = 0.43197632
+offset_right = -0.43200684
+offset_bottom = -3.0517578e-05
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+texture = ExtResource("2_4xmj6")
+expand_mode = 2
+stretch_mode = 5
+
+[node name="Label" type="RichTextLabel" parent="." unique_id=1011437041]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "Loading..."
+horizontal_alignment = 1
+vertical_alignment = 1
+visible_characters = 0
+visible_ratio = 0.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=764441329]
+libraries/ = SubResource("AnimationLibrary_ptb36")
+autoplay = &"Loading"

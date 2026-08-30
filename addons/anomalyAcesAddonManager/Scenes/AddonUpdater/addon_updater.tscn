@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://bx3k8nm2p4qa1"]
+
+[ext_resource type="Script" uid="uid://cx91md8fpq3l2" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/addon_updater.gd" id="1_updater"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.0588235, 0.0588235, 0.0784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.0980392, 0.0980392, 0.12549, 1)
+border_width_bottom = 1
+border_color = Color(0.2, 0.2, 0.235294, 1)
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="AddonUpdater" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_updater")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBox" type="HBoxContainer" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="VBoxContainer/Header/HBox"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+flat = true
+
+[node name="TitleSection" type="VBoxContainer" parent="VBoxContainer/Header/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="VBoxContainer/Header/HBox/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 24
+text = "Addon Updater"
+
+[node name="Subtitle" type="Label" parent="VBoxContainer/Header/HBox/TitleSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.58, 1)
+theme_override_font_sizes/font_size = 14
+text = "Manage and update your registered addons"
+
+[node name="Controls" type="HBoxContainer" parent="VBoxContainer/Header/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RefreshButton" type="Button" parent="VBoxContainer/Header/HBox/Controls"]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+text = "Refresh"
+flat = true
+
+[node name="ManagerContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

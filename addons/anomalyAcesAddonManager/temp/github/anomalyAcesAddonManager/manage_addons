@@ -1,0 +1,566 @@
+#!/usr/bin/env bash
+
+# Anomaly Aces Addon Manager Submodule Manager
+# Compatibility: Git Bash, WSL, Linux, macOS
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Detect OS compatibility for directory junctions vs symlinks
+OS_TYPE="$(uname -s | tr '[:upper:]' '[:lower:]')"
+if [[ "$OS_TYPE" == *"mingw"* || "$OS_TYPE" == *"msys"* || "$OS_TYPE" == *"cygwin"* ]]; then
+    IS_WINDOWS=1
+else
+    IS_WINDOWS=0
+fi
+
+show_help() {
+    echo "Anomaly Aces Addon Manager CLI Helper"
+    echo "Usage: ace-am <command> [arguments]"
+    echo ""
+    echo "Commands:"
+    echo "  add <git_url> <addon_name>  Add an addon submodule under submodules/<addon_name> and link it"
+    echo "  remove <addon_name>         Completely remove the addon submodule and its link"
+    echo "  commit <addon_name> <msg>   Stage, commit, and push changes in the specified submodule"
+    echo "  list                        List all installed addons and their submodule git status"
+    echo "  update                      Update all addon submodules to their latest remote commit"
+    echo "  link                        Recreate symbolic links/junctions for all installed addons"
+    echo "  fix-remotes                 Convert all submodule remotes from HTTPS to SSH (for SSH key auth)"
+    echo "  setup                       Install the 'ace-am' command/alias globally in your shell config"
+    echo "  help                        Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ace-am add git@github.com:user/my-addon.git my_addon"
+    echo "  ace-am commit my_addon \"Add new demo scene\""
+    echo "  ace-am fix-remotes"
+    echo "  ace-am remove my_addon"
+    echo "  ace-am list"
+    echo "  ace-am link"
+}
+
+create_link() {
+    local target="$1"
+    local link="$2"
+    
+    # Ensure parent directory of link exists
+    mkdir -p "$(dirname "$link")"
+    
+    # Resolve target to absolute path
+    local abs_target
+    abs_target="$(cd "$target" && pwd -P)"
+    
+    # If the link already exists, check target
+    if [ -e "$link" ] || [ -L "$link" ]; then
+        local current_target
+        if current_target="$(cd "$link" 2>/dev/null && pwd -P)"; then
+            local abs_current_target
+            abs_current_target="$(cd "$current_target" && pwd -P)"
+            if [ "$abs_current_target" = "$abs_target" ]; then
+                # Already points to the same target, nothing to do
+                return 0
+            else
+                echo "Warning: Naming collision detected for '$(basename "$link")'!"
+                echo "  Already linked to: $abs_current_target"
+                echo "  Failed to link to: $abs_target"
+                echo "  Godot addons must have unique folder names. Please resolve the naming collision."
+                return 1
+            fi
+        fi
+        # If we couldn't resolve the target but it exists, remove it and re-link
+        remove_link "$link"
+    fi
+    
+    echo "Linking: $link -> $abs_target"
+    if [ "$IS_WINDOWS" -eq 1 ]; then
+        # Windows directory junction
+        local win_target
+        win_target="$(cygpath -w "$abs_target")"
+        local win_link
+        win_link="$(cygpath -w "$link")"
+        MSYS_NO_PATHCONV=1 cmd.exe /c mklink /j "$win_link" "$win_target" >/dev/null
+    else
+        # Unix/Linux/macOS/WSL symbolic link
+        ln -s "$abs_target" "$link"
+    fi
+}
+
+remove_link() {
+    local link="$1"
+    if [ -e "$link" ] || [ -L "$link" ]; then
+        if [ "$IS_WINDOWS" -eq 1 ]; then
+            # Safe removal of directory junction on Windows
+            local win_link
+            win_link="$(cygpath -w "$link")"
+            if [ -d "$link" ]; then
+                MSYS_NO_PATHCONV=1 cmd.exe /c rmdir "$win_link" 2>/dev/null
+            else
+                rm -f "$link"
+            fi
+        else
+            rm -rf "$link"
+        fi
+    fi
+}
+
+# Converts the current repo's origin remote from HTTPS to SSH (GitHub)
+ensure_ssh_remote() {
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    if [[ "$remote_url" == https://github.com/* ]]; then
+        local ssh_url
+        ssh_url="git@github.com:${remote_url#https://github.com/}"
+        # Normalise .git suffix
+        [[ "$ssh_url" != *.git ]] && ssh_url="${ssh_url}.git"
+        echo "Switching remote origin to SSH: $ssh_url"
+        git remote set-url origin "$ssh_url"
+    fi
+}
+
+clear_submodule_links() {
+    if [ -d addons ]; then
+        for link in addons/*; do
+            [ -e "$link" ] || [ -L "$link" ] || continue
+            
+            local target_dir
+            target_dir=$(readlink "$link" 2>/dev/null)
+            
+            # Fallback to cd and pwd if readlink is not available or empty
+            if [ -z "$target_dir" ]; then
+                target_dir="$(cd "$link" 2>/dev/null && pwd -P)"
+            fi
+            
+            if [ -n "$target_dir" ]; then
+                local abs_submodules
+                abs_submodules="$(cd "$PROJECT_ROOT/submodules" 2>/dev/null && pwd -P)"
+                if [[ -n "$abs_submodules" && "$target_dir" == "$abs_submodules"/* ]]; then
+                    remove_link "$link"
+                fi
+            fi
+        done
+    fi
+}
+
+link_all_addons() {
+    clear_submodule_links
+    
+    if [ ! -d submodules ]; then
+        return
+    fi
+    
+    local primary_temp
+    primary_temp=$(mktemp)
+    local secondary_temp
+    secondary_temp=$(mktemp)
+    
+    for sub_dir in submodules/*; do
+        [ -d "$sub_dir" ] || continue
+        local sub_name
+        sub_name=$(basename "$sub_dir")
+        
+        # We will collect list of directories to link for this submodule
+        # Format: "addon_dir|addon_folder"
+        local candidates_temp
+        candidates_temp=$(mktemp)
+        
+        # Check if the submodule has an addons/ directory
+        if [ -d "$sub_dir/addons" ]; then
+            # Scan all subdirectories in sub_dir/addons/*
+            for addon_dir in "$sub_dir/addons"/*; do
+                [ -d "$addon_dir" ] || continue
+                local addon_folder
+                addon_folder=$(basename "$addon_dir")
+                echo "$addon_dir|$addon_folder" >> "$candidates_temp"
+            done
+        else
+            # Search for plugin.cfg files in this submodule
+            local configs
+            configs=$(find "$sub_dir" -name "plugin.cfg" 2>/dev/null)
+            
+            if [ -z "$configs" ]; then
+                # Fallback: No plugin.cfg found and no addons/ folder, link the root as primary
+                echo "$sub_dir|$sub_name" >> "$candidates_temp"
+            else
+                while read -r config_path; do
+                    [ -z "$config_path" ] && continue
+                    local addon_dir
+                    addon_dir=$(dirname "$config_path")
+                    local addon_folder
+                    addon_folder=$(basename "$addon_dir")
+                    echo "$addon_dir|$addon_folder" >> "$candidates_temp"
+                done <<< "$configs"
+            fi
+        fi
+        
+        # Process candidates for this submodule to classify them as Primary or Secondary
+        if [ -f "$candidates_temp" ]; then
+            # Count candidates
+            local cand_count
+            cand_count=$(grep -c "^" "$candidates_temp")
+            
+            while IFS='|' read -r addon_dir addon_folder; do
+                [ -z "$addon_dir" ] && continue
+                
+                local is_primary=0
+                
+                # Scenario A: Exactly 1 addon folder in this submodule
+                if [ "$cand_count" -eq 1 ]; then
+                    is_primary=1
+                else
+                    # Scenario B: Multiple addon folders. Compare normalized names.
+                    local norm_sub
+                    norm_sub=$(echo "$sub_name" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+                    local norm_addon
+                    norm_addon=$(echo "$addon_folder" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+                    
+                    if [[ "$norm_addon" == "$norm_sub" || "$norm_sub" == *"$norm_addon"* || "$norm_addon" == *"$norm_sub"* ]]; then
+                        is_primary=1
+                    fi
+                fi
+                
+                if [ "$is_primary" -eq 1 ]; then
+                    echo "$addon_dir|$addon_folder" >> "$primary_temp"
+                else
+                    echo "$addon_dir|$addon_folder" >> "$secondary_temp"
+                fi
+            done < "$candidates_temp"
+            rm -f "$candidates_temp"
+        fi
+    done
+    
+    # Pass 1: Link all primary/main addons
+    if [ -f "$primary_temp" ]; then
+        while IFS='|' read -r addon_dir addon_folder; do
+            [ -z "$addon_dir" ] && continue
+            create_link "$addon_dir" "addons/$addon_folder"
+        done < "$primary_temp"
+        rm -f "$primary_temp"
+    fi
+    
+    # Pass 2: Link all secondary/snapshot dependency addons (only if link target is still empty)
+    if [ -f "$secondary_temp" ]; then
+        while IFS='|' read -r addon_dir addon_folder; do
+            [ -z "$addon_dir" ] && continue
+            local link_path="addons/$addon_folder"
+            if [ ! -e "$link_path" ] && [ ! -L "$link_path" ]; then
+                create_link "$addon_dir" "$link_path"
+            else
+                echo "Skipping snapshot/dependency addon '$addon_folder' from '$addon_dir' (primary addon already linked)."
+            fi
+        done < "$secondary_temp"
+        rm -f "$secondary_temp"
+    fi
+}
+
+cmd_add() {
+    local url="$1"
+    local name="$2"
+
+    if [ -z "$url" ] || [ -z "$name" ]; then
+        echo "Error: Missing arguments."
+        echo "Usage: ace-am add <ssh_git_url> <addon_name>"
+        echo "Example: ace-am add git@github.com:user/my-addon.git my_addon"
+        exit 1
+    fi
+
+    # Only SSH URLs are supported — HTTPS has no auth support
+    if [[ "$url" == https://* ]]; then
+        echo "Error: HTTPS URLs are not supported. Only SSH authentication is used."
+        echo "Convert your URL to SSH format:"
+        local ssh_suggestion
+        ssh_suggestion=$(echo "$url" | sed 's|https://github.com/|git@github.com:|')
+        echo "  $ssh_suggestion"
+        exit 1
+    fi
+
+    cd "$PROJECT_ROOT" || exit 1
+    
+    # Check if this URL is already registered in .gitmodules
+    if [ -f .gitmodules ]; then
+        local search_url="$url"
+        search_url="${search_url%.git}"
+        search_url="${search_url%/}"
+        
+        while read -r key val; do
+            [ -z "$key" ] && continue
+            local norm_val="${val%.git}"
+            norm_val="${norm_val%/}"
+            
+            if [ "$norm_val" = "$search_url" ]; then
+                local existing_path
+                existing_path=$(echo "$key" | sed -n 's/^submodule\.\(.*\)\.url$/\1/p')
+                echo "Warning: The repository '$url' is already registered in this project!"
+                echo "  Existing submodule path: $existing_path"
+                echo "  Verifying links and skipping redundant submodule registration."
+                link_all_addons
+                exit 0
+            fi
+        done <<< "$(git config --file .gitmodules --get-regexp "submodule\..*\.url" 2>/dev/null)"
+    fi
+    
+    # Ensure submodules directory exists
+    mkdir -p submodules
+    touch submodules/.gdignore
+    
+    local sub_path="submodules/$name"
+    
+    if [ -d "$sub_path" ]; then
+        echo "Error: Submodule directory '$sub_path' already exists."
+        exit 1
+    fi
+    
+    echo "Adding submodule '$name' from '$url'..."
+    git submodule add "$url" "$sub_path"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to add git submodule."
+        exit 1
+    fi
+    
+    echo "Initializing and updating submodule..."
+    git submodule update --init --recursive "$sub_path"
+    
+    # Scan and link addon(s)
+    echo "Scanning submodule layout..."
+    link_all_addons
+    
+    echo "Successfully added and linked addon(s) for '$name'!"
+}
+
+cmd_remove() {
+    local name="$1"
+    
+    if [ -z "$name" ]; then
+        echo "Error: Missing addon name."
+        echo "Usage: ace-am remove <addon_name>"
+        exit 1
+    fi
+    
+    cd "$PROJECT_ROOT" || exit 1
+    local sub_path="submodules/$name"
+    
+    if [ ! -d "$sub_path" ] && ! git config --file .gitmodules --get "submodule.submodules/$name.path" >/dev/null 2>&1; then
+        echo "Error: Addon '$name' does not exist as a submodule."
+        exit 1
+    fi
+    
+    echo "Removing submodule '$name'..."
+    
+    # 1. Deinit submodule
+    git submodule deinit -f "$sub_path" 2>/dev/null
+    
+    # 2. Remove git directory
+    git rm -f "$sub_path" 2>/dev/null
+    
+    # 3. Clean up git internal modules directory if it exists
+    if [ -d ".git/modules/$sub_path" ]; then
+        rm -rf ".git/modules/$sub_path"
+    fi
+    
+    # 4. Clean up folder if anything remains
+    if [ -d "$sub_path" ]; then
+        rm -rf "$sub_path"
+    fi
+    
+    # Rebuild links for remaining submodules
+    link_all_addons
+    
+    echo "Successfully removed addon '$name' and its git cache!"
+}
+
+cmd_list() {
+    cd "$PROJECT_ROOT" || exit 1
+    echo "=== Installed Addon Submodules ==="
+    git submodule status
+    echo ""
+    echo "Active folders under addons/:"
+    if [ -d addons ]; then
+        ls -F addons/ | grep '/' | sed 's/\///'
+    else
+        echo "(No addons directory found)"
+    fi
+}
+
+cmd_update() {
+    cd "$PROJECT_ROOT" || exit 1
+
+    # Ensure all submodule remotes use SSH before fetching
+    echo "Checking submodule remote URLs..."
+    for sub_dir in submodules/*/; do
+        [ -d "$sub_dir" ] || continue
+        if [ -d "$sub_dir/.git" ] || [ -f "$sub_dir/.git" ]; then
+            (
+                cd "$sub_dir" || exit 0
+                ensure_ssh_remote
+            )
+        fi
+    done
+
+    echo "Updating all submodules to latest remote commits..."
+    git submodule update --init --recursive --remote
+
+    # Re-link just in case structure updated
+    echo "Verifying links..."
+    link_all_addons
+    echo "Submodules updated and re-linked!"
+}
+
+cmd_commit() {
+    local name="$1"
+    local msg="$2"
+    
+    if [ -z "$name" ] || [ -z "$msg" ]; then
+        echo "Error: Missing arguments."
+        echo "Usage: ace-am commit <addon_name> <commit_message>"
+        exit 1
+    fi
+    
+    cd "$PROJECT_ROOT" || exit 1
+    local sub_path="submodules/$name"
+    
+    if [ ! -d "$sub_path" ]; then
+        echo "Error: Submodule directory '$sub_path' does not exist."
+        exit 1
+    fi
+    
+    echo "Staging, committing, and pushing changes in submodule '$name'..."
+    (
+        cd "$sub_path" || exit 1
+
+        # Ensure remote is SSH before any network operation
+        ensure_ssh_remote
+
+        # Stage and commit any uncommitted local changes
+        if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+
+            git commit -m "$msg"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to commit changes in submodule '$name'."
+                exit 1
+            fi
+            echo "Committed changes in submodule '$name'."
+        else
+            echo "No uncommitted changes in '$name' — checking for unpushed commits..."
+        fi
+
+        # Always push if the branch is ahead of its remote tracking branch
+        local unpushed
+        unpushed=$(git log @{u}.. --oneline 2>/dev/null)
+        if [ -n "$unpushed" ]; then
+            echo "Pushing unpushed commits upstream..."
+            git push
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to push changes for submodule '$name'."
+                exit 1
+            fi
+            echo "Successfully pushed changes for submodule '$name'!"
+        else
+            echo "Nothing to push — submodule '$name' is up to date with remote."
+        fi
+    )
+}
+
+cmd_fix_remotes() {
+    cd "$PROJECT_ROOT" || exit 1
+    echo "Converting all submodule remotes from HTTPS to SSH..."
+    local fixed=0
+    for sub_dir in submodules/*/; do
+        [ -d "$sub_dir" ] || continue
+        if [ -d "$sub_dir/.git" ] || [ -f "$sub_dir/.git" ]; then
+            (
+                cd "$sub_dir" || exit 0
+                ensure_ssh_remote
+            ) && fixed=$((fixed + 1))
+        fi
+    done
+    echo "Done. Checked $fixed submodule(s)."
+}
+
+cmd_setup() {
+    local shell_config=""
+    
+    # Identify shell config file
+    if [ -n "$BASH_VERSION" ]; then
+        if [ -f "$HOME/.bashrc" ]; then
+            shell_config="$HOME/.bashrc"
+        elif [ -f "$HOME/.bash_profile" ]; then
+            shell_config="$HOME/.bash_profile"
+        else
+            shell_config="$HOME/.bashrc"
+        fi
+    elif [ -n "$ZSH_VERSION" ]; then
+        shell_config="$HOME/.zshrc"
+    else
+        shell_config="$HOME/.bashrc"
+    fi
+    
+    echo "Configuring alias 'ace-am' in '$shell_config'..."
+    
+    # Ensure config file exists
+    touch "$shell_config"
+    
+    # Clean up legacy block if it exists
+    if grep -q "Anomaly Aces Addon Previewer Command Helper" "$shell_config" 2>/dev/null && ! grep -q "ANOMALY ACES ADDON PREVIEWER START" "$shell_config" 2>/dev/null; then
+        echo "Removing legacy configuration..."
+        sed '/# Anomaly Aces Addon Previewer Command Helper/,/}/d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+    
+    # Clean up previewer marked block if it exists
+    if grep -q "ANOMALY ACES ADDON PREVIEWER START" "$shell_config" 2>/dev/null; then
+        echo "Updating existing Previewer configuration..."
+        sed '/# >>> ANOMALY ACES ADDON PREVIEWER START >>>/,/# <<< ANOMALY ACES ADDON PREVIEWER END <<</d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+
+    # Clean up manager marked block if it exists
+    if grep -q "ANOMALY ACES ADDON MANAGER START" "$shell_config" 2>/dev/null; then
+        echo "Updating existing Manager configuration..."
+        sed '/# >>> ANOMALY ACES ADDON MANAGER START >>>/,/# <<< ANOMALY ACES ADDON MANAGER END <<</d' "$shell_config" > "${shell_config}.tmp" 2>/dev/null && mv "${shell_config}.tmp" "$shell_config"
+    fi
+    
+    # Append fresh marked block
+    cat << EOF >> "$shell_config"
+
+# >>> ANOMALY ACES ADDON MANAGER START >>>
+# Anomaly Aces Addon Manager Command Helper
+ace-am() {
+    "$PROJECT_ROOT/addons/anomalyAcesAddonManager/manage_addons" "\$@"
+}
+# <<< ANOMALY ACES ADDON MANAGER END <<<
+EOF
+    echo "Successfully updated 'ace-am' command function in '$shell_config'!"
+    echo "Please restart your shell or run: source '$shell_config'"
+}
+
+# Main command dispatcher
+case "$1" in
+    add)
+        cmd_add "$2" "$3"
+        ;;
+    remove)
+        cmd_remove "$2"
+        ;;
+    commit)
+        cmd_commit "$2" "$3"
+        ;;
+    list)
+        cmd_list
+        ;;
+    update)
+        cmd_update
+        ;;
+    link)
+        echo "Recreating addon links..."
+        cd "$PROJECT_ROOT" || exit 1
+        link_all_addons
+        echo "Successfully recreated addon links!"
+        ;;
+    fix-remotes)
+        cmd_fix_remotes
+        ;;
+    setup)
+        cmd_setup
+        ;;
+    help|* )
+        show_help
+        ;;
+esac

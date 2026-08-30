@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://dep4ntry00001"]
+
+[ext_resource type="Script" uid="uid://dep4ntry00002" path="res://addons/anomalyAcesAddonManager/Scenes/AddonDependencyEditor/DependencyEntry/dependency_entry.gd" id="1_entry"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_entry"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.11, 0.114, 0.145, 1)
+border_width_left = 2
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0.298039, 0.356863, 0.941176, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_subdeps"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 0.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_color = Color(0.25, 0.27, 0.35, 1)
+
+[node name="DependencyEntry" type="PanelContainer"]
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_entry")
+script = ExtResource("1_entry")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TopRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="OwnerField" type="LineEdit" parent="VBox/TopRow"]
+custom_minimum_size = Vector2(160, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "owner (e.g. anomalyaces)"
+
+[node name="SlashLabel" type="Label" parent="VBox/TopRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1)
+text = "/"
+
+[node name="RepoField" type="LineEdit" parent="VBox/TopRow"]
+custom_minimum_size = Vector2(220, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "repo (e.g. Anomaly-Aces-Log)"
+
+[node name="RemoveButton" type="Button" parent="VBox/TopRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.3, 0.3, 1)
+text = "×"
+
+[node name="SecondRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SubfolderLabel" type="Label" parent="VBox/SecondRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "Subfolder:"
+vertical_alignment = 1
+
+[node name="SubfolderField" type="LineEdit" parent="VBox/SecondRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "e.g. addons/anomalyAcesLog"
+
+[node name="ThirdRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="IsReleaseToggle" type="CheckButton" parent="VBox/ThirdRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Use Release"
+
+[node name="VersionBranchLabel" type="Label" parent="VBox/ThirdRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "Branch:"
+vertical_alignment = 1
+
+[node name="VersionBranchField" type="LineEdit" parent="VBox/ThirdRow"]
+custom_minimum_size = Vector2(160, 28)
+layout_mode = 2
+placeholder_text = "e.g. master"
+
+[node name="SubDepsSection" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SubDepsContainer" type="VBoxContainer" parent="VBox/SubDepsSection"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AddSubDepButton" type="Button" parent="VBox/SubDepsSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1.0, 0.8)
+theme_override_font_sizes/font_size = 11
+flat = true
+text = "+ Add Sub-Dependency"
+alignment = 0

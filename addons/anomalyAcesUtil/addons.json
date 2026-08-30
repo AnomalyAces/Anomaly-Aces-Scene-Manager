@@ -1,0 +1,20 @@
+[
+  {
+	"owner": "anomalyaces",
+	"repo": "Anomaly-Aces-Util",
+	"isRelease": false,
+	"version": "1.0",
+	"branch": "master",
+	"subfolder": "addons/anomalyAcesUtil",
+	"dependencies": [
+	  {
+		"owner": "anomalyaces",
+		"repo": "Anomaly-Aces-Log",
+		"isRelease": false,
+		"version": "1.0",
+		"branch": "master",
+		"subfolder": "addons/anomalyAcesLog"
+	  }
+	]
+  }
+]

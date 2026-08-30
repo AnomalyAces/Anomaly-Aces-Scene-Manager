@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cwksuvmi086r"]
+
+[ext_resource type="Script" uid="uid://dojx2qgxicysw" path="res://addons/anomalyAcesUtil/Scripts/AceDateTimeUtil/AceDateTimeUtilTest.gd" id="1_0n0lx"]
+
+[node name="AceDateTimeUtilTest" type="Node" unique_id=1148721027]
+script = ExtResource("1_0n0lx")

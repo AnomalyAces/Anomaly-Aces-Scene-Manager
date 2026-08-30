@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://c4d8ha0malyi4"]
+
+[ext_resource type="Script" uid="uid://v1bwxiaf1owo" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/ace_plugin_manager.gd" id="1_ihacs"]
+[ext_resource type="PackedScene" uid="uid://jg4xi14xt04h" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main.tscn" id="2_grbuy"]
+[ext_resource type="PackedScene" uid="uid://cclal1evfyb24" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/InstallAddons/InstallAddons.tscn" id="3_xdacc"]
+[ext_resource type="PackedScene" uid="uid://cp6jkh5oiekiu" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/GithubPAT/GithubPAT.tscn" id="4_iifbw"]
+
+[node name="AcePluginManager" type="Control" unique_id=596065178]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ihacs")
+
+[node name="Main" parent="." unique_id=2142225350 instance=ExtResource("2_grbuy")]
+layout_mode = 1
+
+[node name="InstallAddons" parent="." unique_id=2121648271 instance=ExtResource("3_xdacc")]
+visible = false
+layout_mode = 1
+
+[node name="GithubPat" parent="." unique_id=2058642828 instance=ExtResource("4_iifbw")]
+visible = false
+layout_mode = 1

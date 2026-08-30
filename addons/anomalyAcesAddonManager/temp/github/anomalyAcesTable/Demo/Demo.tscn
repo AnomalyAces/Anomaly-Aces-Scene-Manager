@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://bsss813pgmfgs"]
+
+[ext_resource type="Script" uid="uid://dx5omv4v1wnur" path="res://addons/anomalyAcesTable/Demo/Demo.gd" id="1_u7mc1"]
+[ext_resource type="Script" uid="uid://sx1wgfw6xjis" path="res://addons/anomalyAcesTable/Scripts/ace_table_properties.gd" id="2_srnsb"]
+[ext_resource type="Theme" uid="uid://7bv7l77w7kgq" path="res://addons/anomalyAcesTable/Demo/Theme/BorderTheme/BorderHeaderTheme.tres" id="3_g5ldi"]
+[ext_resource type="Theme" uid="uid://balr4wqyocu4s" path="res://addons/anomalyAcesTable/Demo/Theme/BorderTheme/BorderHeaderCellTheme.tres" id="4_eqksw"]
+[ext_resource type="Theme" uid="uid://6j52qpigihcu" path="res://addons/anomalyAcesTable/Demo/Theme/BorderTheme/BorderRowTheme.tres" id="5_dvcxc"]
+[ext_resource type="Theme" uid="uid://xes7caqisu6l" path="res://addons/anomalyAcesTable/Demo/Theme/BorderTheme/BorderRowCellTheme.tres" id="6_lavp0"]
+
+[node name="Demo" type="Control" unique_id=1759122168]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u7mc1")
+
+[node name="AceTable" type="Control" parent="." unique_id=468930452]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_srnsb")
+header_theme = ExtResource("3_g5ldi")
+header_cell_theme = ExtResource("4_eqksw")
+row_theme = ExtResource("5_dvcxc")
+row_cell_theme = ExtResource("6_lavp0")
+cell_separation = 0

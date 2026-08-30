@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://b1n7g625wkhse"]
+
+[ext_resource type="Script" uid="uid://dmjhuw1hqabt2" path="res://addons/anomalyAcesTable/Scene/Button/_AceTableButton.gd" id="1_s4f5w"]
+[ext_resource type="Shader" uid="uid://drdxj8566up5m" path="res://addons/anomalyAcesTable/Scene/Button/_AceTableButton.gdshader" id="2_anro8"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mtily"]
+shader = ExtResource("2_anro8")
+
+[node name="AceTableButton" type="Button" unique_id=497303882]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_s4f5w")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=770224562]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="ButtonContainer" type="HBoxContainer" parent="MarginContainer" unique_id=2045408594]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/ButtonContainer" unique_id=1411521305]
+material = SubResource("ShaderMaterial_mtily")
+instance_shader_parameters/instance_color = Color(1, 1, 1, 1)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MarginContainer/ButtonContainer" unique_id=2134598549]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+size_flags_stretch_ratio = 3.0
+theme_override_colors/font_color = Color(0.875, 0.875, 0.875, 1)
+theme_override_font_sizes/font_size = 0
+vertical_alignment = 1
+
+[connection signal="button_up" from="." to="." method="_on_button_up"]
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="focus_entered" from="MarginContainer/ButtonContainer" to="." method="_on_icon_left_focus_entered"]
+[connection signal="focus_exited" from="MarginContainer/ButtonContainer" to="." method="_on_icon_left_focus_exited"]
+[connection signal="mouse_entered" from="MarginContainer/ButtonContainer" to="." method="_on_icon_left_mouse_entered"]
+[connection signal="mouse_exited" from="MarginContainer/ButtonContainer" to="." method="_on_icon_left_mouse_exited"]
+[connection signal="focus_entered" from="MarginContainer/ButtonContainer/TextureRect" to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="MarginContainer/ButtonContainer/TextureRect" to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="MarginContainer/ButtonContainer/TextureRect" to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="MarginContainer/ButtonContainer/TextureRect" to="." method="_on_mouse_exited"]

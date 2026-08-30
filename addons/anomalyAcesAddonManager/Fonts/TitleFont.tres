@@ -1,0 +1,7 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://b63twx4qqo3mk"]
+
+[ext_resource type="FontFile" uid="uid://dnoh4wya6wrde" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Bold.ttf" id="1_h4gaj"]
+
+[resource]
+font = ExtResource("1_h4gaj")
+font_size = 64

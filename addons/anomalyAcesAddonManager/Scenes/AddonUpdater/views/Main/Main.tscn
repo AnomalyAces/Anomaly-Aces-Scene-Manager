@@ -1,0 +1,215 @@
+[gd_scene format=3 uid="uid://jg4xi14xt04h"]
+
+[ext_resource type="Script" uid="uid://cvfreqqu30n7m" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/ace_plugin_main_view.gd" id="1_0542m"]
+[ext_resource type="Script" uid="uid://sx1wgfw6xjis" path="res://addons/anomalyAcesTable/Scripts/ace_table_properties.gd" id="2_0542m"]
+[ext_resource type="FontFile" uid="uid://cpb0xvgcv3wdl" path="res://addons/anomalyAcesAddonManager/Fonts/Chakra_Petch/ChakraPetch-Medium.ttf" id="2_q1a5h"]
+[ext_resource type="Theme" uid="uid://bx1fly6adbouv" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-HeaderTheme.tres" id="3_l7mma"]
+[ext_resource type="Texture2D" uid="uid://dheudj0jp7p0o" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonInstall.svg" id="3_sg5kk"]
+[ext_resource type="Texture2D" uid="uid://ctr7t17kfgcmy" path="res://addons/anomalyAcesAddonManager/Icons/AceAddonReload.svg" id="3_uimyb"]
+[ext_resource type="Texture2D" uid="uid://b33bc0yfbkjw" path="res://addons/anomalyAcesAddonManager/Icons/Github.svg" id="4_sg5kk"]
+[ext_resource type="Theme" uid="uid://wgkqeg5mojsr" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-RowTheme.tres" id="4_t5kl5"]
+[ext_resource type="Theme" uid="uid://byewiscuxyxda" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-RowCellTheme.tres" id="5_y0qvv"]
+[ext_resource type="Texture2D" uid="uid://b6cygpgtnaomm" path="res://addons/anomalyAcesTable/Icons/AceTableCheckboxChecked.svg" id="7_yb3ld"]
+[ext_resource type="PackedScene" uid="uid://cd0aapc45wg2k" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Loading/LoadingView.tscn" id="8_n0oye"]
+[ext_resource type="Theme" uid="uid://dvm3ul1pd018w" path="res://addons/anomalyAcesAddonManager/Scenes/AddonUpdater/views/Main/Main-HeaderCellTheme.tres" id="10_q1a5h"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0542m"]
+bg_color = Color(0.0006904672, 0.02125666, 0.04044265, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n0oye"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yb3ld"]
+
+[sub_resource type="Theme" id="Theme_l7mma"]
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_0542m")
+RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_n0oye")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_yb3ld")
+
+[node name="Main" type="Control" unique_id=368126978]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("1_0542m")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1349700188]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme = SubResource("Theme_l7mma")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1745202067]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1623449591]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q1a5h")
+theme_override_font_sizes/font_size = 32
+text = "Ace Add-On Manager"
+horizontal_alignment = 1
+
+[node name="Control3" type="Control" parent="PanelContainer/VBoxContainer" unique_id=1475605842]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="ActionButtons" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1649454893]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1658669640]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="Reload" type="Button" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1311066716]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_y0qvv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 0
+theme_override_constants/icon_max_width = 30
+theme_override_constants/align_to_largest_stylebox = 0
+theme_override_font_sizes/font_size = 25
+text = "Check For Updates"
+icon = ExtResource("3_uimyb")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Select" type="Button" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=910910059]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
+theme = ExtResource("5_y0qvv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 25
+text = "Select Available Updates"
+icon = ExtResource("7_yb3ld")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Install" type="Button" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1549816277]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
+theme = ExtResource("5_y0qvv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 25
+text = "Install Selected Add-ons"
+icon = ExtResource("3_sg5kk")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Control3" type="Control" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1652446808]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.1
+
+[node name="VSeparator" type="ColorRect" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=153835816]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+
+[node name="Control4" type="Control" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1599724157]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.1
+
+[node name="GithubPAT" type="Button" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=257857659]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_y0qvv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 30
+theme_override_constants/align_to_largest_stylebox = 0
+theme_override_font_sizes/font_size = 25
+text = "Github Personal Access Token"
+icon = ExtResource("4_sg5kk")
+flat = true
+autowrap_mode = 2
+autowrap_trim_flags = 0
+
+[node name="Control2" type="Control" parent="PanelContainer/VBoxContainer/ActionButtons" unique_id=1761411447]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="Control" type="Control" parent="PanelContainer/VBoxContainer" unique_id=157346333]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="HSeparator" type="ColorRect" parent="PanelContainer/VBoxContainer" unique_id=1384112148]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+
+[node name="Control2" type="Control" parent="PanelContainer/VBoxContainer" unique_id=1541599914]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="LoadingView" parent="PanelContainer/VBoxContainer" unique_id=1213959645 instance=ExtResource("8_n0oye")]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(54, 54)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+
+[node name="TableTitle" type="Label" parent="PanelContainer/VBoxContainer" unique_id=1521063001]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q1a5h")
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="AddonTablePlugin" type="Control" parent="PanelContainer/VBoxContainer" unique_id=1510064024]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("2_0542m")
+header_theme = ExtResource("3_l7mma")
+header_cell_theme = ExtResource("10_q1a5h")
+row_theme = ExtResource("4_t5kl5")
+row_cell_theme = ExtResource("5_y0qvv")
+cell_separation = 0
+metadata/_custom_type_script = "uid://sx1wgfw6xjis"
+
+[node name="ConflictTablePlugin" type="Control" parent="PanelContainer/VBoxContainer" unique_id=37003315]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("2_0542m")
+header_theme = ExtResource("3_l7mma")
+header_cell_theme = ExtResource("10_q1a5h")
+row_theme = ExtResource("4_t5kl5")
+row_cell_theme = ExtResource("5_y0qvv")
+cell_separation = 0
+metadata/_custom_type_script = "uid://sx1wgfw6xjis"
+
+[connection signal="pressed" from="PanelContainer/VBoxContainer/ActionButtons/Reload" to="." method="_on_reload_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/ActionButtons/Select" to="." method="_on_select_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/ActionButtons/Install" to="." method="_on_install_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/ActionButtons/GithubPAT" to="." method="_on_github_pat_pressed"]
