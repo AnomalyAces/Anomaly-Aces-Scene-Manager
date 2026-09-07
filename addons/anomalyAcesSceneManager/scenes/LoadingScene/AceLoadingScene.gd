@@ -63,6 +63,8 @@ func _get_configuration_warnings() -> PackedStringArray:
 					warnings.append("The transition_types entry '%s' has an empty/unassigned 'transition_root_node' (NodePath)." % key)
 				if type_info.has_progress_bar and type_info.get_progress_path_string().is_empty():
 					warnings.append("The transition_types entry '%s' has 'has_progress_bar' enabled, but 'progress_bar_node' (NodePath) is empty/unassigned." % key)
+				if type_info.has_shader and type_info.shader == null:
+					warnings.append("The transition_types entry '%s' has 'has_shader' enabled, but 'shader' (Shader) is null/unassigned." % key)
 
 	return warnings
 
@@ -168,6 +170,33 @@ func get_progress_bar_node(transition: AceTransitionConfig) -> Control:
 		return scene_bar as Control
 
 	return null
+
+
+## Helper method to resolve the shader target node for a given transition parameter.
+func get_shader_node(transition: AceTransitionConfig) -> CanvasItem:
+	var info: AceTransitionType = get_transition_type_info(transition)
+	if info != null:
+		var sh_path_str: String = info.get_shader_path_string()
+		if not sh_path_str.is_empty() and has_node(NodePath(sh_path_str)):
+			return get_node_or_null(NodePath(sh_path_str)) as CanvasItem
+	
+	return get_transition_node(transition) as CanvasItem
+
+
+## Helper method to setup and assign a ShaderMaterial with the transition shader onto the target node.
+func setup_shader_material(transition: AceTransitionConfig) -> ShaderMaterial:
+	var info: AceTransitionType = get_transition_type_info(transition)
+	if info != null and info.has_shader and info.shader != null:
+		var target: CanvasItem = get_shader_node(transition)
+		if target != null:
+			var mat: ShaderMaterial = target.material as ShaderMaterial
+			if mat == null:
+				mat = ShaderMaterial.new()
+				target.material = mat
+			mat.shader = info.shader
+			return mat
+	return null
+
 
 
 # ==============================================================================

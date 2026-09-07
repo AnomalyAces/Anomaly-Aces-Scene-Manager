@@ -23,11 +23,14 @@ An advanced Godot 4 editor plugin and scene management system for controlling sc
 Node model representing the layout configuration for a specific transition type:
 
 ```gdscript
-class_name AceTransitionType extends Control
+class_name AceTransitionType extends Resource
 
-@export var transition_root_node: Control # Control node picker link to root container
+@export var transition_root_node: NodePath # NodePath link to root container node
 @export var has_progress_bar: bool = false # Whether this layout includes a progress bar
-@export var progress_bar_node: Control    # Control node picker link to progress bar visual
+@export var progress_bar_node: NodePath    # NodePath link to progress bar visual
+@export var has_shader: bool = false       # Whether this transition uses a custom shader
+@export var shader_node: NodePath          # NodePath link to shader target node (defaults to transition_root_node if empty)
+@export var shader: Shader                 # Shader resource (.gdshader)
 ```
 
 ### `AceTransitionConfig` ([AceTransitionConfig.gd](file:///c:/Users/Jerek/Documents/Anomaly%20Aces/Anomaly%20Aces%20Plugins/Anomaly-Aces-Scene-Manager/addons/anomalyAcesSceneManager/scripts/models/AceTransitionConfig.gd))
@@ -80,6 +83,8 @@ class_name MyCustomLoadingScene
 - **`get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionType`**: Retrieves `AceTransitionType` layout node using the resolution waterfall.
 - **`get_transition_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the root container Control node for the active transition type.
 - **`get_progress_bar_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the progress bar visual Control node if `has_progress_bar` is `true`.
+- **`get_shader_node(transition: AceTransitionConfig) -> CanvasItem`**: Resolves the target node for shader attachment (falls back to `transition_root_node`).
+- **`setup_shader_material(transition: AceTransitionConfig) -> ShaderMaterial`**: Instantiates and assigns a `ShaderMaterial` with `info.shader` to the target shader node if `has_shader` is `true`.
 
 ### 3. Transition Type Resolution Waterfall Order (`get_transition_type_info`)
 
@@ -93,6 +98,146 @@ When resolving an `AceTransitionType` layout for an `AceTransitionConfig`, `AceL
 
 - **Root Control Container (`get_transition_node`)**: Returns `info.transition_root_node`. If unassigned/null, falls back to returning the **first child `Control` node** in the loading scene hierarchy.
 - **Progress Bar Node (`get_progress_bar_node`)**: Returns `info.progress_bar_node` if `has_progress_bar` is `true`. If unassigned/null, searches the container children for any node named `"ProgressBar"`.
+
+---
+
+## Step-by-Step Guide: Configuring a Custom `AceLoadingScene`
+
+This guide walks through creating and configuring a custom loading screen scene (`.tscn`) step-by-step, including scene structure, `AnimationPlayer` setup, shader integration, `transition_types` configuration, and Project Settings registration.
+
+### Step 1: Create Scene & Attach `AceLoadingScene` Script
+
+1. In Godot 4, create a new scene with a **CanvasLayer** (or **Control**) as the root node.
+2. Attach a GDScript extending `AceLoadingScene` (or `AceDefaultLoadingScene`):
+
+```gdscript
+@tool
+extends AceLoadingScene
+class_name MyCustomLoadingScene
+
+var _selected_transition: AceTransitionConfig
+
+func play_transition(transition: AceTransitionConfig) -> void:
+	_selected_transition = _get_transition_config(transition)
+	
+	# Resolve active transition container node and hide inactive containers
+	var active_node: Control = get_transition_node(_selected_transition)
+	for child in get_children():
+		if child is Control:
+			(child as Control).visible = (child == active_node)
+
+	# Dynamically assign ShaderMaterial if configured on AceTransitionType
+	setup_shader_material(_selected_transition)
+
+	# Play transition-in animation
+	var start_anim: String = _selected_transition.start if _selected_transition != null else ""
+	if animation_player != null and not start_anim.is_empty() and animation_player.has_animation(start_anim):
+		animation_player.play(start_anim)
+		await animation_player.animation_finished
+
+	loading_screen_ready.emit()
+
+func finish_transition() -> void:
+	# Play transition-out animation
+	var end_anim: String = _selected_transition.end if _selected_transition != null else ""
+	if animation_player != null and not end_anim.is_empty() and animation_player.has_animation(end_anim):
+		animation_player.play(end_anim)
+		await animation_player.animation_finished
+
+	loading_screen_finished.emit()
+	queue_free()
+
+func _on_progress_changed(new_value: float) -> void:
+	var pb_node: Control = get_progress_bar_node(_selected_transition)
+	if pb_node is ProgressBar:
+		(pb_node as ProgressBar).value = new_value * 100.0
+
+func _on_load_finished() -> void:
+	pass
+```
+
+---
+
+### Step 2: Build the Node Hierarchy (Loading Scene Structure)
+
+Organize your loading scene container nodes cleanly under the root node:
+
+```text
+MyCustomLoadingScene (CanvasLayer, extends AceLoadingScene)
+├── Fade (Control - Fullscreen container for standard fade)
+│   ├── Panel (Panel - Self-modulating black background)
+│   └── ProgressBar (ProgressBar - Optional progress indicator)
+├── Circle (Control - Fullscreen container for circle wipe)
+│   └── TextureRect (TextureRect - Scaling radial gradient texture)
+├── Shader (Control - Fullscreen container for shader wipe effects)
+│   └── TransitionColor (ColorRect - Material-driven shader target)
+└── AnimationPlayer (AnimationPlayer - Handles all transition animations)
+```
+
+> [!TIP]
+> Group each transition type into its own top-level `Control` child under the root loading scene. `AceLoadingScene.get_transition_node()` will automatically toggle visibility for the active container.
+
+---
+
+### Step 3: Configure the `AnimationPlayer`
+
+1. Add an **AnimationPlayer** node to the scene.
+2. Select the root node of your loading scene and assign the `animation_player` export property to `NodePath("AnimationPlayer")`.
+3. Create animation tracks for your start and end transitions:
+   - **`fade_to_black`** (Start): Animate `Fade/Panel:self_modulate:a` from `0.0` to `1.0`.
+   - **`fade_from_black`** (End): Animate `Fade/Panel:self_modulate:a` from `1.0` to `0.0`.
+   - **`shader_fade_to_black`** (Start): Animate track `Shader/TransitionColor:material:shader_parameter/progress` from `0.0` to `1.0`.
+   - **`shader_fade_from_black`** (End): Animate track `Shader/TransitionColor:material:shader_parameter/progress` from `1.0` to `0.0`.
+   - **`horizontal_sweep_start`** (Start): Animate track `HorizontalSweep/TransitionColor:material:shader_parameter/progress` from `0.0` to `1.0`.
+   - **`horizontal_sweep_end`** (End): Animate track `HorizontalSweep/TransitionColor:material:shader_parameter/progress` from `1.0` to `0.0`.
+
+---
+
+### Step 4: Configure `transition_types` in the Inspector
+
+On the root node of your loading scene, expand the exported `transition_types` dictionary in the Inspector to register your layout mapping:
+
+1. **Add Entry `"Fade"`**:
+   - Sub-resource: `AceTransitionType`
+   - `transition_root_node` = `NodePath("Fade")`
+   - `has_progress_bar` = `true`
+   - `progress_bar_node` = `NodePath("Fade/ProgressBar")`
+
+2. **Add Entry `"Circle"`**:
+   - Sub-resource: `AceTransitionType`
+   - `transition_root_node` = `NodePath("Circle")`
+   - `has_progress_bar` = `false`
+
+3. **Add Entry `"ShaderFade"` or `"HorizontalSweep"` (Using Shaders)**:
+   - Sub-resource: `AceTransitionType`
+   - `transition_root_node` = `NodePath("Shader")`
+   - `has_shader` = `true`
+   - `shader_node` = `NodePath("Shader/TransitionColor")` *(Optional: defaults to `transition_root_node` if empty)*
+   - `shader` = Assign your `.gdshader` resource (e.g. `res://addons/anomalyAcesSceneManager/shaders/horizontal_sweep.gdshader`)
+
+---
+
+### Step 5: Register Transitions in Project Settings
+
+1. Open **Project Settings** -> **General** -> **Ace Scene Manager** (or configure via code in `AceSettings`).
+2. **Default Loading Screen**: Set `aceSceneManager/default_loading_screen` to your custom scene path (e.g., `"res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn"`).
+3. **Available Transitions**: In `aceSceneManager/available_transitions`, create entries mapping transition names to `AceTransitionConfig` resources:
+
+```gdscript
+# Example configuration dictionary:
+{
+    "Fade": AceTransitionConfig.new("fade_to_black", "fade_from_black"),
+    "Circle": AceTransitionConfig.new("fade_to_black_circle", "fade_from_black_circle"),
+    "ShaderFade": AceTransitionConfig.new("shader_fade_to_black", "shader_fade_from_black"),
+    "HorizontalSweep": AceTransitionConfig.new("horizontal_sweep_start", "horizontal_sweep_end"),
+    "CustomLoading": AceTransitionConfig.new("fade_to_black", "fade_from_black", "res://demo/scenes/DemoCustomLoadingScene/DemoCustomLoadingScreen.tscn")
+}
+```
+
+4. Trigger transitions anywhere in code:
+```gdscript
+AceSceneManager.load_scene("DemoDetail", "HorizontalSweep")
+```
 
 ---
 

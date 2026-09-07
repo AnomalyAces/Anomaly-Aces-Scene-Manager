@@ -39,3 +39,10 @@ func _on_shader_fade_button_pressed() -> void:
 		status_label.text = "Status: Transitioning with Shader Fade..."
 	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "ShaderFade"})
 	AceSceneManager.load_scene("DemoDetail", "ShaderFade", data)
+
+
+func _on_horizontal_sweep_button_pressed() -> void:
+	if status_label != null:
+		status_label.text = "Status: Transitioning with Horizontal Sweep..."
+	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "HorizontalSweep"})
+	AceSceneManager.load_scene("DemoDetail", "HorizontalSweep", data)

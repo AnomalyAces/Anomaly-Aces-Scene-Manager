@@ -65,7 +65,13 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Load Detail Scene (Shader Fade Button)"
 
+[node name="HorizontalSweepButton" type="Button" parent="VBoxContainer" unique_id=651571364]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Load Detail Scene (Horizontal Sweep Button)"
+
 [connection signal="pressed" from="VBoxContainer/FadeButton" to="." method="_on_fade_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/CircleButton" to="." method="_on_circle_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/CustomLoadingButton" to="." method="_on_custom_loading_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/ShaderFadeButton" to="." method="_on_shader_fade_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/HorizontalSweepButton" to="." method="_on_horizontal_sweep_button_pressed"]

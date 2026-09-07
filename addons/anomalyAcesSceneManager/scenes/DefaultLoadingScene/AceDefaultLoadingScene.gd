@@ -67,6 +67,9 @@ func _setup_transition_node() -> void:
 		if child is Control:
 			(child as Control).visible = (child == active_node)
 
+	setup_shader_material(_selected_transition)
+
+
 
 func _on_progress_changed(new_value: float) -> void:
 	var pb_node: Control = get_progress_bar_node(_selected_transition)

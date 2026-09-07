@@ -15,7 +15,8 @@ static var demo_transitions: Dictionary[String, AceTransitionConfig] = {
 	"Fade": AceTransitionConfig.new("fade_to_black", "fade_from_black"),
 	"Circle": AceTransitionConfig.new("fade_to_black_circle", "fade_from_black_circle"),
 	"CustomLoading": AceTransitionConfig.new("fade_to_black", "fade_from_black", "res://addons/anomalyAcesSceneManager/demo/scenes/DemoCustomLoadingScene/DemoCustomLoadingScreen.tscn"),
-	"ShaderFade": AceTransitionConfig.new("shader_fade_to_black", "shader_fade_from_black")
+	"ShaderFade": AceTransitionConfig.new("shader_fade_to_black", "shader_fade_from_black"),
+	"HorizontalSweep": AceTransitionConfig.new("horizontal_sweep_start", "horizontal_sweep_end"),
 }
 
 static var demo_transition_types: Dictionary[String, AceTransitionType] = {}
