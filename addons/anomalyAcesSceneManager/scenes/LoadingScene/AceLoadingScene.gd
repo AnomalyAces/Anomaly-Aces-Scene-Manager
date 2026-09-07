@@ -1,16 +1,70 @@
 @tool
+@abstract
 class_name AceLoadingScene extends CanvasLayer
 
-## Base class for loading screen scenes in Ace Scene Manager.
+## Base abstract class for loading screen scenes in Ace Scene Manager.
 ## Extend this class to implement custom transition animations and progress indicators.
 
 signal loading_screen_ready
 signal loading_screen_finished
 
-@export var animation_player: AnimationPlayer
+@export var animation_player: AnimationPlayer:
+	set(val):
+		animation_player = val
+		update_configuration_warnings()
 
-## Configurable dictionary mapping Transition Type names to AceTransitionType objects or dictionaries.
-@export var transition_types: Dictionary[String, AceTransitionType] = {}
+## Configurable dictionary mapping Transition Type names to AceTransitionType objects.
+@export var transition_types: Dictionary[String, AceTransitionType] = {}:
+	set(val):
+		transition_types = val
+		update_configuration_warnings()
+
+
+# ==============================================================================
+# ENGINE VIRTUAL METHODS
+# ==============================================================================
+
+func _ready() -> void:
+	if Engine.is_editor_hint():
+		if not child_entered_tree.is_connected(_on_editor_child_changed):
+			child_entered_tree.connect(_on_editor_child_changed)
+		if not child_exiting_tree.is_connected(_on_editor_child_changed):
+			child_exiting_tree.connect(_on_editor_child_changed)
+		_subscribe_transition_type_signals()
+
+
+func _on_editor_child_changed(_node: Node = null) -> void:
+	_subscribe_transition_type_signals()
+	update_configuration_warnings()
+
+
+func _subscribe_transition_type_signals() -> void:
+	for key in transition_types:
+		var type_node: AceTransitionType = transition_types[key]
+		if type_node != null and type_node.has_signal("changed"):
+			if not type_node.changed.is_connected(update_configuration_warnings):
+				type_node.changed.connect(update_configuration_warnings)
+
+
+func _get_configuration_warnings() -> PackedStringArray:
+	var warnings: PackedStringArray = PackedStringArray()
+	if animation_player == null:
+		warnings.append("AnimationPlayer is not assigned on this AceLoadingScene.")
+
+	if transition_types.is_empty():
+		warnings.append("The 'transition_types' dictionary is empty. At least one transition type (e.g. 'Fade', 'Circle') must be configured.")
+	else:
+		for key in transition_types:
+			var type_info: AceTransitionType = transition_types[key]
+			if type_info == null:
+				warnings.append("The transition_types dictionary entry for key '%s' has an empty/null AceTransitionType value." % key)
+			else:
+				if type_info.get_root_path_string().is_empty():
+					warnings.append("The transition_types entry '%s' has an empty/unassigned 'transition_root_node' (NodePath)." % key)
+				if type_info.has_progress_bar and type_info.get_progress_path_string().is_empty():
+					warnings.append("The transition_types entry '%s' has 'has_progress_bar' enabled, but 'progress_bar_node' (NodePath) is empty/unassigned." % key)
+
+	return warnings
 
 
 # ==============================================================================
@@ -18,46 +72,73 @@ signal loading_screen_finished
 # ==============================================================================
 
 ## Called by AceSceneManager to begin the transition-in animation.
-## [param transition]: The transition name (String) or transition configuration Dictionary.
-func play_transition(transition: Variant) -> void:
-	# Virtual method - override in derived loading scenes.
-	loading_screen_ready.emit()
+## [param transition]: The transition configuration AceTransitionConfig object.
+@abstract func play_transition(transition: AceTransitionConfig) -> void
 
 
 ## Called by AceSceneManager when resource load is complete to begin transition-out animation.
-func finish_transition() -> void:
-	# Virtual method - override in derived loading scenes.
-	loading_screen_finished.emit()
-	queue_free()
+@abstract func finish_transition() -> void
 
 
 ## Helper method to retrieve AceTransitionType info for a given transition parameter.
-func get_transition_type_info(transition: Variant) -> AceTransitionType:
+func get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionType:
 	var config: AceTransitionConfig = _get_transition_config(transition)
-	if config != null and config.type != null:
-		return config.type
+	if config == null:
+		return AceTransitionType.new()
 
-	# Fallback: check global settings if passed a string key
-	if typeof(transition) == TYPE_STRING and AceSceneManager.settings != null:
-		var type_name: String = transition as String
+	# 1. Match config against registered available transitions (project settings or demo settings)
+	var search_name: String = ""
+	if AceSceneManager.settings != null:
+		var custom_trans: Dictionary = AceSceneManager.settings.get_setting("available_transitions", {})
+		for k in custom_trans:
+			var dict_cfg: AceTransitionConfig = custom_trans[k] as AceTransitionConfig
+			if dict_cfg == config or (dict_cfg != null and not dict_cfg.start.is_empty() and dict_cfg.start == config.start and dict_cfg.end == config.end):
+				search_name = String(k)
+				break
+
+	if search_name.is_empty():
+		for k in AceSceneManagerDemoSettings.demo_transitions:
+			var demo_cfg: AceTransitionConfig = AceSceneManagerDemoSettings.demo_transitions[k]
+			if demo_cfg == config or (demo_cfg != null and not demo_cfg.start.is_empty() and demo_cfg.start == config.start and demo_cfg.end == config.end):
+				search_name = k
+				break
+
+	# 2. Fallback: Match by substring against transition_types keys (sorting by longest key first to prevent "Fade" matching inside "ShaderFade")
+	if search_name.is_empty():
+		var keys: Array = transition_types.keys()
+		keys.sort_custom(func(a: Variant, b: Variant) -> bool: return String(a).length() > String(b).length())
+		for key in keys:
+			var key_str: String = String(key)
+			if not key_str.is_empty() and (key_str.to_lower() in config.start.to_lower() or key_str.to_lower() in config.end.to_lower()):
+				search_name = key_str
+				break
+
+	# 3. Check loading scene's transition_types dictionary
+	if not search_name.is_empty() and transition_types.has(search_name):
+		var scene_type: AceTransitionType = transition_types[search_name]
+		if scene_type != null:
+			return scene_type
+
+	# 4. Fallback to global settings
+	if not search_name.is_empty() and AceSceneManager.settings != null:
 		var global_types: Dictionary = AceSceneManager.settings.get_setting("transition_types", {})
-		if global_types.has(type_name):
-			var raw_info: Variant = global_types[type_name]
-			if raw_info is AceTransitionType:
-				return raw_info as AceTransitionType
-			elif typeof(raw_info) == TYPE_DICTIONARY:
-				return AceTransitionType.from_dictionary(raw_info as Dictionary)
+		if global_types.has(search_name):
+			var raw_info: AceTransitionType = global_types[search_name] as AceTransitionType
+			if raw_info != null:
+				return raw_info
+		if AceSceneManagerDemoSettings.demo_transition_types.has(search_name):
+			return AceSceneManagerDemoSettings.demo_transition_types[search_name]
 
 	return AceTransitionType.new()
 
 
 ## Helper method to resolve the root Control node for a given transition parameter.
-func get_transition_node(transition: Variant) -> Control:
+func get_transition_node(transition: AceTransitionConfig) -> Control:
 	var info: AceTransitionType = get_transition_type_info(transition)
-	if info != null and not info.transition_root_node.is_empty():
-		var node_path: NodePath = NodePath(info.transition_root_node)
-		if has_node(node_path):
-			return get_node_or_null(node_path) as Control
+	if info != null:
+		var root_path_str: String = info.get_root_path_string()
+		if not root_path_str.is_empty() and has_node(NodePath(root_path_str)):
+			return get_node_or_null(NodePath(root_path_str)) as Control
 
 	# Fallback: Return first child Control node on this loading scene instance
 	for child in get_children():
@@ -68,12 +149,12 @@ func get_transition_node(transition: Variant) -> Control:
 
 
 ## Helper method to resolve the progress bar node for a given transition parameter.
-func get_progress_bar_node(transition: Variant) -> Control:
+func get_progress_bar_node(transition: AceTransitionConfig) -> Control:
 	var info: AceTransitionType = get_transition_type_info(transition)
-	if info != null and info.has_progress_bar and not info.progress_bar_node.is_empty():
-		var node_path: NodePath = NodePath(info.progress_bar_node)
-		if has_node(node_path):
-			return get_node_or_null(node_path) as Control
+	if info != null and info.has_progress_bar:
+		var pb_path_str: String = info.get_progress_path_string()
+		if not pb_path_str.is_empty() and has_node(NodePath(pb_path_str)):
+			return get_node_or_null(NodePath(pb_path_str)) as Control
 
 	# Fallback: Find any child ProgressBar in the active transition container or scene tree
 	var active_container: Control = get_transition_node(transition)
@@ -95,22 +176,15 @@ func get_progress_bar_node(transition: Variant) -> Control:
 
 ## Called by AceSceneManager when thread load progress updates.
 ## [param new_value]: Load progress from 0.0 to 1.0 (or 0 to 100).
-func _on_progress_changed(new_value: float) -> void:
-	# Virtual method - override in derived loading scenes.
-	pass
+@abstract func _on_progress_changed(new_value: float) -> void
+
+
+## Called by AceSceneManager when resource load completes.
+@abstract func _on_load_finished() -> void
 
 
 ## Helper method to resolve transition parameters into an AceTransitionConfig.
-func _get_transition_config(transition: Variant) -> AceTransitionConfig:
-	if transition is AceTransitionConfig:
-		return transition as AceTransitionConfig
-	elif typeof(transition) == TYPE_DICTIONARY:
-		return AceTransitionConfig.from_dictionary(transition as Dictionary)
-	elif typeof(transition) == TYPE_STRING and not (transition as String).is_empty():
-		return AceTransitions.get_transition_config(transition as String)
-	return AceTransitions.get_transition_config(AceTransitions.TRANSITION_FADE_BLACK)
-
-
-## Helper method to resolve transition parameters into a Dictionary.
-func _get_transition_dict(transition: Variant) -> Dictionary:
-	return _get_transition_config(transition).to_dictionary()
+func _get_transition_config(transition: AceTransitionConfig) -> AceTransitionConfig:
+	if transition != null:
+		return transition
+	return AceTransitions.get_transition_config("Fade", AceSceneManager.settings)

@@ -5,7 +5,7 @@ class_name AceSettings extends Node
 ## Dictionary that has a key value pair describing the setting and the setting properties [br]
 ## [b]Key[/b] - String, settings path [br]
 ## [b]Value[/b] - [GodotSettingConfig] - ccontains all of the properties for the setting added
-var settings_config : Dictionary[String, AceSettingConfig]
+var settings_config: Dictionary[String, AceSettingConfig]
 
 ## Root where the settings should be nested in the Project settings
 var settings_root: String
@@ -21,7 +21,7 @@ func prepare() -> void:
 	for key: String in settings_config:
 		AceLog.printLog(["Loading setting: %s" % key])
 		var setting_config: AceSettingConfig = settings_config[key]
-		var setting_name: String = "%s/%s" % [settings_root,key]
+		var setting_name: String = "%s/%s" % [settings_root, key]
 		if not ProjectSettings.has_setting(setting_name):
 			AceLog.printLog(["setting %s is not present" % setting_name])
 			ProjectSettings.set_setting(setting_name, setting_config.value)
@@ -37,18 +37,17 @@ func prepare() -> void:
 
 
 func set_setting(key: String, value) -> void:
-	var setting_val: Variant = get_setting(key,value)
+	var setting_val: Variant = get_setting(key, value)
 	AceLog.printLog(["Setting val: %s" % setting_val])
 	if setting_val != null && setting_val != value:
-		AceLog.printLog(["Setting %s to %s" % ["%s/%s" % [settings_root,key], setting_val]])
-		ProjectSettings.set_setting("%s/%s" % [settings_root,key], setting_val)
-		ProjectSettings.set_initial_value("%s/%s" % [settings_root,key], setting_val)
+		AceLog.printLog(["Setting %s to %s" % ["%s/%s" % [settings_root, key], setting_val]])
+		ProjectSettings.set_setting("%s/%s" % [settings_root, key], setting_val)
+		ProjectSettings.set_initial_value("%s/%s" % [settings_root, key], setting_val)
 		ProjectSettings.save()
 
 
-func get_setting(key: String, default: Variant = null)-> Variant:
-	if ProjectSettings.has_setting("%s/%s" % [settings_root,key]):
-		return ProjectSettings.get_setting("%s/%s" % [settings_root,key])
+func get_setting(key: String, default: Variant = null) -> Variant:
+	if ProjectSettings.has_setting("%s/%s" % [settings_root, key]):
+		return ProjectSettings.get_setting("%s/%s" % [settings_root, key])
 	else:
 		return default
-

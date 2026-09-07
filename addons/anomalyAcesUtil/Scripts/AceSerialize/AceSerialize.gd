@@ -4,7 +4,6 @@ class_name AceSerialize extends Node
 const CLASS_RESOURCE: String = "CLASS_RESOURCE"
 
 
-
 static var json: JSON = JSON.new()
 
 
@@ -16,9 +15,9 @@ static func serialize_array(array: Array[Variant]) -> String:
 			string_arr.append(serialize(obj))
 	elif _is_typed_dictionary_array(array):
 		for dict in array:
-			string_arr.append(JSON.stringify(dict, "\t",false))
+			string_arr.append(JSON.stringify(dict, "\t", false))
 		
-	return "["+",".join(string_arr)+"]"
+	return "[" + ",".join(string_arr) + "]"
 
 static func serialize(obj: Object) -> String:
 	var dict: Dictionary = {}
@@ -35,7 +34,7 @@ static func serialize(obj: Object) -> String:
 		for prop in properties:
 			var pval = obj.get(prop)
 			#Don't serialize empty properties
-			if(pval == null || (typeof(pval) == TYPE_STRING && pval == "" )):
+			if (pval == null || (typeof(pval) == TYPE_STRING && pval == "")):
 				continue
 			if typeof(pval) == TYPE_ARRAY:
 				dict[prop] = []
@@ -49,15 +48,15 @@ static func serialize(obj: Object) -> String:
 			else:
 				var value = (
 					JSON.parse_string(serialize(pval)) if (typeof(pval) == TYPE_OBJECT && !pval is Texture2D)
-					else var_to_str(pval) if ![TYPE_STRING,TYPE_INT,TYPE_FLOAT].has(typeof(pval))
+					else var_to_str(pval) if ![TYPE_STRING, TYPE_INT, TYPE_FLOAT].has(typeof(pval))
 					else pval
 				)
 				dict[prop] = value
-		return JSON.stringify(dict, "\t",false)
+		return JSON.stringify(dict, "\t", false)
 	else:
-		return var_to_str(obj) if ![TYPE_STRING,TYPE_INT,TYPE_FLOAT].has(typeof(obj)) else str(obj)
+		return var_to_str(obj) if ![TYPE_STRING, TYPE_INT, TYPE_FLOAT].has(typeof(obj)) else str(obj)
 	
-static func deserialize(jsonInput:String, cls:Resource) -> AceDeserializeResult:
+static func deserialize(jsonInput: String, cls: Resource) -> AceDeserializeResult:
 	AceLog.printLog(["Deserializing...", jsonInput], AceLog.LOG_LEVEL.DEBUG)
 	var json_res: Error = json.parse(jsonInput)
 	if json_res == Error.OK:
@@ -72,25 +71,25 @@ static func deserialize(jsonInput:String, cls:Resource) -> AceDeserializeResult:
 			return res
 		else:
 			# print("JSON object is %s" % payload.get_class()) 
-			var res:AceDeserializeResult = AceDeserializeResult.new()
+			var res: AceDeserializeResult = AceDeserializeResult.new()
 			res.data = str_to_var(payload)
 			res.error = Error.OK
 			return res
 	else:
 		AceLog.printLog(["Error processing json string %s. \nError Code %s" % [jsonInput, json_res]], AceLog.LOG_LEVEL.ERROR)
-		var res:AceDeserializeResult = AceDeserializeResult.new()
+		var res: AceDeserializeResult = AceDeserializeResult.new()
 		res.error = json_res
 		return res
 
 	
 static func _prop_list_to_string_list(cls_properties: Array[Dictionary]):
-	var properties: Array[String] 
+	var properties: Array[String]
 	properties.assign(cls_properties.map(
-		func(prop) -> String: return prop.name 
+		func(prop) -> String: return prop.name
 	))
 	return properties
 
-static func _deserialize_array(jsonInput:Array, cls:Resource) -> AceDeserializeResult:
+static func _deserialize_array(jsonInput: Array, cls: Resource) -> AceDeserializeResult:
 	var arrayDeserRes: AceDeserializeResult = AceDeserializeResult.new()
 	var array: Array = []
 	for jsonObj in jsonInput:
@@ -111,15 +110,15 @@ static func _deserialize_array(jsonInput:Array, cls:Resource) -> AceDeserializeR
 	arrayDeserRes.error = Error.OK
 	return arrayDeserRes
 
-static func _deserialize_obj(jsonInput:Dictionary, cls:Resource) -> AceDeserializeResult:
-	var res:AceDeserializeResult = AceDeserializeResult.new()
+static func _deserialize_obj(jsonInput: Dictionary, cls: Resource) -> AceDeserializeResult:
+	var res: AceDeserializeResult = AceDeserializeResult.new()
 	
-	var obj:Object = cls.new()
+	var obj: Object = cls.new()
 	var cls_properties: Array[Dictionary] = obj.get_script().get_script_property_list()
 	var properties: Array[String] = _prop_list_to_string_list(cls_properties)
 
 	var typed_obj_dict: Dictionary[String, TypedInfo] = {}
-	_determine_obj_typed_members(obj,typed_obj_dict)
+	_determine_obj_typed_members(obj, typed_obj_dict)
 
 	# print("Typed Objects:")
 	# print(JSON.stringify(typed_obj_dict, "\t"))
@@ -162,7 +161,6 @@ static func _deserialize_obj(jsonInput:Dictionary, cls:Resource) -> AceDeseriali
 					obj.set(key, internal_res.data)
 			elif typeof(value) == TYPE_ARRAY:
 				# print("Key %s is of type Array istyped: %s with values %s" % [key,value.is_typed(),str(value)])
-
 				if typed_obj_dict.has(key):
 					var tInfo: TypedInfo = typed_obj_dict[key]
 					# print("Key: %s, is an array with type info: %s" % [key, str(tInfo)])
@@ -227,7 +225,7 @@ static func _recursively_find(typed_members_dict: Dictionary[String, TypedInfo],
 		# Check if the value is an Array.
 		if typeof(value) == TYPE_ARRAY:
 			# print("Proptery: %s is of type Array | Value: %s " % [property, JSON.stringify(value)])
-			var typed_array_type: int  = value.get_typed_builtin()
+			var typed_array_type: int = value.get_typed_builtin()
 			var typed_array_script: Script = value.get_typed_script()
 
 			var tInfo: TypedInfo
@@ -241,14 +239,12 @@ static func _recursively_find(typed_members_dict: Dictionary[String, TypedInfo],
 			# Check if it's a typed built-in array.
 			if typed_array_type != TYPE_NIL && typed_array_type != TYPE_OBJECT:
 				# print("Property: %s array type is built-in" % property)
-				
 				tInfo.is_built_in = true
 				tInfo.built_in_type = typed_array_type
 				typed_members_dict[property] = tInfo
 			# Check if its a typed custom array
 			elif typed_array_script != null:
 				# print("Property: %s array type is custom - %s" % [property, typed_array_script.get_global_name()])
-				
 				tInfo.is_built_in = false
 				tInfo.array_script = typed_array_script
 				typed_members_dict[property] = tInfo
@@ -256,14 +252,13 @@ static func _recursively_find(typed_members_dict: Dictionary[String, TypedInfo],
 				# Recursively check for the object type of the typed array
 				if !tInfo.children_processed:
 					tInfo.children_processed = true
-					_recursively_find(typed_members_dict, typed_array_script.new(),full_path) 
+					_recursively_find(typed_members_dict, typed_array_script.new(), full_path)
 
 
 		# Check for dictionaries.
 		elif typeof(value) == TYPE_DICTIONARY:
 			# print("Proptery: %s is of type Dictionary " % property)
-
-			var typed_dict_val_type: int  = value.get_typed_value_builtin()
+			var typed_dict_val_type: int = value.get_typed_value_builtin()
 			var typed_dict_val_script: Script = value.get_typed_value_script()
 
 			var tInfo: TypedInfo
@@ -276,14 +271,12 @@ static func _recursively_find(typed_members_dict: Dictionary[String, TypedInfo],
 			# Check if it's a typed built-in array.
 			if typed_dict_val_type != TYPE_NIL && typed_dict_val_type != TYPE_OBJECT:
 				# print("Property: %s value type is built-in" % property)
-				
 				tInfo.is_built_in = true
 				tInfo.built_in_type = typed_dict_val_type
 				typed_members_dict[property] = tInfo
 			
 			elif typed_dict_val_script != null:
 				# print("Property: %s array type is custom - %s" % [property, typed_dict_val_script.get_global_name()])
-				
 				tInfo.is_built_in = false
 				tInfo.dict_obj_script = typed_dict_val_script
 				typed_members_dict[property] = tInfo
@@ -291,7 +284,7 @@ static func _recursively_find(typed_members_dict: Dictionary[String, TypedInfo],
 				# Recursively check for the object type of the typed array
 				if !tInfo.children_processed:
 					tInfo.children_processed = true
-					_recursively_find(typed_members_dict, typed_dict_val_script.new(),full_path) 
+					_recursively_find(typed_members_dict, typed_dict_val_script.new(), full_path)
 
 		
 		# Recurse for nested objects (not dictionaries or arrays).

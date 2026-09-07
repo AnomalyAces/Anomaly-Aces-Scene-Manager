@@ -1,17 +1,22 @@
 [gd_scene format=3 uid="uid://bg8yts00ub11x"]
 
-[ext_resource type="Script" uid="uid://dfgjaq3cs5mo1" path="res://addons/anomalyAcesSceneManager/scenes/LoadingScene/AceDefaultLoadingScene.gd" id="1_f4nyk"]
-[ext_resource type="Script" uid="uid://gixis1lf5ei7" path="res://addons/anomalyAcesSceneManager/scripts/models/AceTransitionType.gd" id="2_yl7yo"]
+[ext_resource type="Script" uid="uid://dfgjaq3cs5mo1" path="res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.gd" id="1_f4nyk"]
+[ext_resource type="Script" uid="uid://gixis1lf5ei7" path="res://addons/anomalyAcesSceneManager/scripts/models/AceTransitionType.gd" id="2_bmabg"]
+[ext_resource type="Shader" uid="uid://oe62piq04i77" path="res://addons/anomalyAcesSceneManager/shaders/fade.gdshader" id="2_fqp15"]
 
-[sub_resource type="Resource" id="Resource_2rbv0"]
-script = ExtResource("2_yl7yo")
-metadata/_custom_type_script = "uid://gixis1lf5ei7"
+[sub_resource type="Resource" id="Resource_circle_type"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("Circle")
 
-[sub_resource type="Resource" id="Resource_0abpg"]
-script = ExtResource("2_yl7yo")
-transition_root_node = "Fade"
+[sub_resource type="Resource" id="Resource_fade_type"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("Fade")
 has_progress_bar = true
-progress_bar_node = "Fade/ProgressBar"
+progress_bar_node = NodePath("Fade/ProgressBar")
+
+[sub_resource type="Resource" id="Resource_shader_type"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("Shader")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ac338"]
 bg_color = Color(0, 0, 0, 1)
@@ -32,6 +37,10 @@ gradient = SubResource("Gradient_pse68")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 metadata/_snap_enabled = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_86c5g"]
+shader = ExtResource("2_fqp15")
+shader_parameter/progress = 0.0
 
 [sub_resource type="Animation" id="Animation_qaec1"]
 length = 0.001
@@ -58,6 +67,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shader/TransitionColor:material:shader_parameter/progress")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
 }
 
 [sub_resource type="Animation" id="Animation_ylap7"]
@@ -170,13 +191,45 @@ tracks/1/keys = {
 "values": [true]
 }
 
+[sub_resource type="Animation" id="Animation_fqp15"]
+resource_name = "shader_fade_from_black"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Shader/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_au8gb"]
+resource_name = "shader_fade_to_black"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Shader/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_370oc"]
 _data = {
 &"RESET": SubResource("Animation_qaec1"),
 &"fade_from_black": SubResource("Animation_ylap7"),
 &"fade_from_black_circle": SubResource("Animation_e1o4y"),
 &"fade_to_black": SubResource("Animation_1isuu"),
-&"fade_to_black_circle": SubResource("Animation_gg6ds")
+&"fade_to_black_circle": SubResource("Animation_gg6ds"),
+&"shader_fade_from_black": SubResource("Animation_fqp15"),
+&"shader_fade_to_black": SubResource("Animation_au8gb")
 }
 
 [node name="AceDefaultLoadingScene" type="CanvasLayer" unique_id=137437426 node_paths=PackedStringArray("animation_player")]
@@ -184,9 +237,10 @@ layer = 100
 follow_viewport_enabled = true
 script = ExtResource("1_f4nyk")
 animation_player = NodePath("AnimationPlayer")
-transition_types = Dictionary[String, ExtResource("2_yl7yo")]({
-"Circle": SubResource("Resource_2rbv0"),
-"Fade": SubResource("Resource_0abpg")
+transition_types = Dictionary[String, ExtResource("2_bmabg")]({
+"Circle": SubResource("Resource_circle_type"),
+"Fade": SubResource("Resource_fade_type"),
+"ShaderFade": SubResource("Resource_shader_type")
 })
 
 [node name="Fade" type="Control" parent="." unique_id=683594023]
@@ -196,6 +250,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="Fade" unique_id=377695956]
 self_modulate = Color(0, 0, 0, 0)
@@ -205,6 +260,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ac338")
 
 [node name="ProgressBar" type="ProgressBar" parent="Fade" unique_id=293832476]
@@ -233,8 +289,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="TextureRect" type="TextureRect" parent="Circle" unique_id=696938103]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -247,9 +305,28 @@ offset_right = 32.0
 offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(50, 50)
+scale = Vector2(0.1, 0.1)
 pivot_offset = Vector2(32, 32)
+mouse_filter = 2
 texture = SubResource("GradientTexture2D_usqve")
+
+[node name="Shader" type="Control" parent="." unique_id=2086472074]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransitionColor" type="ColorRect" parent="Shader" unique_id=1243070740]
+material = SubResource("ShaderMaterial_86c5g")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1410537966]
 unique_name_in_owner = true

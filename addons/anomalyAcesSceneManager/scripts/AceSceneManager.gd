@@ -29,10 +29,7 @@ const USE_SUB_THREADS: String = "use_sub_threads"
 
 static var empty_registry: Dictionary[String, String] = {}
 static var empty_transitions: Dictionary[String, AceTransitionConfig] = {}
-static var default_transition_types: Dictionary[String, AceTransitionType] = {
-	"Fade": AceTransitionType.new("Fade", true, "Fade/ProgressBar"),
-	"Circle": AceTransitionType.new("Circle", false, "")
-}
+static var default_transition_types: Dictionary[String, AceTransitionType] = {}
 
 
 static var SETTINGS_CONFIGURATION: Dictionary[String, AceSettingConfig] = {
@@ -61,7 +58,7 @@ static var SETTINGS_CONFIGURATION: Dictionary[String, AceSettingConfig] = {
 	DEFAULT_LOADING_SCREEN: AceSettingConfig.new(
 		DEFAULT_LOADING_SCREEN,
 		TYPE_STRING,
-		"res://addons/anomalyAcesSceneManager/scenes/LoadingScene/AceDefaultLoadingScene.tscn",
+		"res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn",
 		PROPERTY_HINT_FILE,
 		"*.tscn"
 	),
@@ -85,7 +82,8 @@ var scene_path: String = ""
 var progress: Array = []
 var use_sub_threads: bool = true
 var pending_scene_data: Variant = null
-var current_transition: Variant = null
+var current_transition: AceTransitionConfig = null
+var _loading_scene_cache: Dictionary = {}
 
 
 # ==============================================================================
@@ -137,6 +135,21 @@ func is_scene_eligible(scene_key_or_path: String) -> bool:
 	return AceScenes.is_scene_eligible(scene_key_or_path, settings)
 
 
+func _get_cached_packed_scene(path: String) -> PackedScene:
+	if path.is_empty():
+		return null
+	if _loading_scene_cache.has(path):
+		var cached_res: Variant = _loading_scene_cache[path]
+		if cached_res is PackedScene and is_instance_valid(cached_res as PackedScene):
+			return cached_res as PackedScene
+	if ResourceLoader.exists(path) or FileAccess.file_exists(path):
+		var res: PackedScene = load(path) as PackedScene
+		if res != null:
+			_loading_scene_cache[path] = res
+			return res
+	return null
+
+
 func load_scene(scene_key_or_path: String, transition_name: String = "", scene_data: Variant = null) -> void:
 	if not is_scene_eligible(scene_key_or_path):
 		AceLog.printLog(["Scene '%s' is not registered in scene_registry!" % scene_key_or_path], AceLog.LOG_LEVEL.ERROR)
@@ -147,6 +160,7 @@ func load_scene(scene_key_or_path: String, transition_name: String = "", scene_d
 		AceLog.printLog(["Could not resolve scene path for key/path: '%s'" % scene_key_or_path], AceLog.LOG_LEVEL.ERROR)
 		return
 
+	set_process(false)
 	scene_path = resolved_path
 	pending_scene_data = scene_data
 
@@ -154,36 +168,65 @@ func load_scene(scene_key_or_path: String, transition_name: String = "", scene_d
 		use_sub_threads = settings.get_setting(USE_SUB_THREADS, true)
 
 	if not transition_name.is_empty():
-		current_transition = AceTransitions.get_transition(transition_name, settings)
+		current_transition = AceTransitions.get_transition_config(transition_name, settings)
 		transition_started.emit(transition_name)
 
-	# Instantiate default loading screen if configured
-	var default_loading_path: String = "res://addons/anomalyAcesSceneManager/scenes/LoadingScene/AceDefaultLoadingScene.tscn"
-	var loading_screen_path: String = settings.get_setting(DEFAULT_LOADING_SCREEN, default_loading_path) if settings != null else default_loading_path
-	if not loading_screen_path.is_empty() and ResourceLoader.exists(loading_screen_path):
-		var loading_scene_res: PackedScene = load(loading_screen_path)
-		if loading_scene_res != null:
-			loading_screen = loading_scene_res.instantiate()
-			get_tree().root.add_child(loading_screen)
-			if loading_screen.has_method("_on_progress_changed"):
+	# Resolve loading screen path: check transition config first, then fallback to project setting default
+	var loading_screen_path: String = current_transition.loading_screen_path if current_transition != null else ""
+
+	var default_loading_path: String = "res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn"
+
+	if loading_screen_path.is_empty():
+		if settings != null:
+			var s_val: Variant = settings.get_setting(DEFAULT_LOADING_SCREEN, default_loading_path)
+			if s_val is String and not (s_val as String).is_empty():
+				loading_screen_path = s_val as String
+		if loading_screen_path.is_empty():
+			loading_screen_path = default_loading_path
+
+	var loading_scene_res: PackedScene = _get_cached_packed_scene(loading_screen_path)
+	if loading_scene_res == null and loading_screen_path != default_loading_path:
+		loading_scene_res = _get_cached_packed_scene(default_loading_path)
+
+	if loading_scene_res != null:
+		loading_screen = loading_scene_res.instantiate()
+		get_tree().root.add_child(loading_screen)
+		if loading_screen.has_method("_on_progress_changed"):
+			if not progress_changed.is_connected(loading_screen._on_progress_changed):
 				progress_changed.connect(loading_screen._on_progress_changed)
-			if loading_screen.has_method("_on_load_finished"):
+		if loading_screen.has_method("_on_load_finished"):
+			if not load_finished.is_connected(loading_screen._on_load_finished):
 				load_finished.connect(loading_screen._on_load_finished)
-				
-			if loading_screen.has_method("play_transition"):
-				loading_screen.play_transition(transition_name if not transition_name.is_empty() else AceTransitions.TRANSITION_FADE_BLACK)
-				if loading_screen.has_signal("loading_screen_ready"):
-					await loading_screen.loading_screen_ready
+			
+		if loading_screen.has_method("play_transition"):
+			var active_config: AceTransitionConfig = current_transition if current_transition != null else AceTransitions.get_transition_config("Fade", settings)
+			loading_screen.play_transition(active_config)
+			if loading_screen.has_signal("loading_screen_ready"):
+				await loading_screen.loading_screen_ready
 
 	start_load()
 
 
 func start_load() -> void:
+	var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(scene_path)
+	if status == ResourceLoader.THREAD_LOAD_LOADED:
+		var res: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
+		if res == null and ResourceLoader.exists(scene_path):
+			res = load(scene_path) as PackedScene
+		if res != null:
+			_on_content_loaded(res.instantiate())
+			return
+
 	var state: Error = ResourceLoader.load_threaded_request(scene_path, "", use_sub_threads)
-	if state == OK:
+	if state == OK or state == ERR_ALREADY_IN_USE:
 		set_process(true)
 		AceLog.printLog(["Started threaded load for scene: %s" % scene_path], AceLog.LOG_LEVEL.INFO)
 	else:
+		if ResourceLoader.exists(scene_path):
+			var res: PackedScene = load(scene_path) as PackedScene
+			if res != null:
+				_on_content_loaded(res.instantiate())
+				return
 		AceLog.printLog(["Failed to request threaded load for scene: %s (Error: %s)" % [scene_path, state]], AceLog.LOG_LEVEL.ERROR)
 
 
@@ -197,6 +240,7 @@ static func _process_settings(p_settings: AceSettings) -> void:
 
 
 func _on_content_loaded(content: Node) -> void:
+	set_process(false)
 	var outgoing_scene: Node = get_tree().current_scene
 	var incoming_data: Variant = pending_scene_data
 
@@ -224,6 +268,11 @@ func _on_content_loaded(content: Node) -> void:
 
 	# Clean up loading screen
 	if loading_screen != null:
+		if loading_screen.has_method("_on_progress_changed") and progress_changed.is_connected(loading_screen._on_progress_changed):
+			progress_changed.disconnect(loading_screen._on_progress_changed)
+		if loading_screen.has_method("_on_load_finished") and load_finished.is_connected(loading_screen._on_load_finished):
+			load_finished.disconnect(loading_screen._on_load_finished)
+
 		if loading_screen.has_method("finish_transition"):
 			loading_screen.call("finish_transition")
 		else:
@@ -232,4 +281,10 @@ func _on_content_loaded(content: Node) -> void:
 
 	load_finished.emit()
 	transition_completed.emit()
+
+	# Reset manager state completely for subsequent transitions
+	scene_path = ""
+	loaded_resource = null
 	pending_scene_data = null
+	current_transition = null
+	progress.clear()
