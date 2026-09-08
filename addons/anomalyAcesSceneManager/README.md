@@ -241,6 +241,56 @@ AceSceneManager.load_scene("DemoDetail", "HorizontalSweep")
 
 ---
 
+## Scene Lifecycle & Signals (`load_finished` vs. `transition_completed`)
+
+When `AceSceneManager.load_scene(...)` is called, the manager progresses through distinct phases:
+1. **`transition_started(transition_name)`**: The loading screen is instantiated and begins the transition-in animation.
+2. **Threaded Loading & `progress_changed(progress)`**: Background thread loads resources while progress updates are emitted.
+3. **`load_finished`**: Background loading completes; the new scene is instantiated and added to the scene tree. Loading screens receive `_on_load_finished()` to snap progress bars to 100% or display completion prompts (e.g. *"Press Any Key"*).
+4. **Transition Out (`finish_transition`)**: The loading screen plays its exit animation (or waits for user key press).
+5. **`transition_completed`**: The exit animation completes, the loading screen is freed, and the newly loaded scene is completely uncovered and visible.
+
+### What Happens by Default vs. What Needs `transition_completed`
+
+| Aspect | Behavior by default | Do you need `transition_completed`? |
+| :--- | :--- | :--- |
+| **Mouse / GUI Clicks** | Blocked automatically because the loading screen is a high-layer `CanvasLayer` with `mouse_filter = STOP`. | **No** (the overlay absorbs clicks until it fades). |
+| **Process / Physics Ticking** | Begins immediately when the scene enters the tree (`_ready()`, `_physics_process()`). | **Yes**, if you don't want enemies moving, timers counting down, or gravity ticking while hidden. |
+| **Player Controls / Actions** | Key bindings (`Input.is_action_pressed()`) can respond unless gated. | **Yes**, to prevent characters moving or jumping before the screen is visible. |
+| **Cutscenes / Level Intro** | Dialogue or intro sequences would start playing behind the black screen. | **Yes**, so intros trigger only once the view is clear. |
+
+### Recommended Pattern in a Loaded Scene
+
+In your loaded scene's script, you can gate gameplay initialization by awaiting `AceSceneManager.transition_completed` in `_ready()`:
+
+```gdscript
+func _ready() -> void:
+	# 1. Setup scene state, HUD, or data
+	set_process(false)
+	set_physics_process(false)
+
+	# 2. Wait until the transition animation has completely finished
+	await AceSceneManager.transition_completed
+
+	# 3. Enable gameplay / start round
+	set_process(true)
+	set_physics_process(true)
+	start_level()
+```
+
+Or connect via a one-shot signal:
+
+```gdscript
+func _ready() -> void:
+	AceSceneManager.transition_completed.connect(_on_scene_revealed, CONNECT_ONE_SHOT)
+
+func _on_scene_revealed() -> void:
+	# Start player controls, music, or level timers here
+	pass
+```
+
+---
+
 ## Running the Demo Project
 
 A built-in demo project is located in `addons/anomalyAcesSceneManager/demo/` demonstrating scene transitions, custom loading screen overrides, and `AceSceneData` transfers.

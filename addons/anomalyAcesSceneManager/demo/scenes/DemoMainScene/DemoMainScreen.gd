@@ -46,3 +46,21 @@ func _on_horizontal_sweep_button_pressed() -> void:
 		status_label.text = "Status: Transitioning with Horizontal Sweep..."
 	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "HorizontalSweep"})
 	AceSceneManager.load_scene("DemoDetail", "HorizontalSweep", data)
+
+func _on_vertical_sweep_button_pressed() -> void:
+	if status_label != null:
+		status_label.text = "Status: Transitioning with Vertical Sweep..."
+	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "VerticalSweep"})
+	AceSceneManager.load_scene("DemoDetail", "VerticalSweep", data)
+
+func _on_diagonal_sweep_button_pressed() -> void:
+	if status_label != null:
+		status_label.text = "Status: Transitioning with Diagonal Sweep..."
+	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "DiagonalSweep"})
+	AceSceneManager.load_scene("DemoDetail", "DiagonalSweep", data)
+
+func _on_tile_square_sweep_button_pressed() -> void:
+	if status_label != null:
+		status_label.text = "Status: Transitioning with Tile Square Sweep..."
+	var data: AceSceneData = AceSceneData.new({"player": "PlayerOne", "score": 100, "level": 3, "transition": "TileSquare"})
+	AceSceneManager.load_scene("DemoDetail", "TileSquare", data)

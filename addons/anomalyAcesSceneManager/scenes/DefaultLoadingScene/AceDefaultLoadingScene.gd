@@ -82,4 +82,7 @@ func _on_progress_changed(new_value: float) -> void:
 
 
 func _on_load_finished() -> void:
-	pass
+	var pb_node: Control = get_progress_bar_node(_selected_transition)
+	var active_bar: ProgressBar = pb_node as ProgressBar if pb_node is ProgressBar else null
+	if active_bar != null:
+		active_bar.value = 100.0

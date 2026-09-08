@@ -4,20 +4,34 @@
 [ext_resource type="Script" uid="uid://gixis1lf5ei7" path="res://addons/anomalyAcesSceneManager/scripts/models/AceTransitionType.gd" id="2_bmabg"]
 [ext_resource type="Shader" uid="uid://oe62piq04i77" path="res://addons/anomalyAcesSceneManager/shaders/fade.gdshader" id="2_fqp15"]
 [ext_resource type="Shader" uid="uid://w1uvdoxpia4x" path="res://addons/anomalyAcesSceneManager/shaders/horizontal_sweep.gdshader" id="3_fqp15"]
+[ext_resource type="Shader" uid="uid://c6d05bnwhnvfa" path="res://addons/anomalyAcesSceneManager/shaders/vertical_sweep.gdshader" id="3_gegfq"]
+[ext_resource type="Shader" uid="uid://ucr5youo3cku" path="res://addons/anomalyAcesSceneManager/shaders/tile_square.gdshader" id="3_yktgx"]
 
 [sub_resource type="Resource" id="Resource_circle_type"]
 script = ExtResource("2_bmabg")
 transition_root_node = NodePath("Circle")
-has_shader = null
-shader_node = null
+
+[sub_resource type="Resource" id="Resource_yktgx"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("DiagonalSweep")
+has_shader = true
+shader_node = NodePath("DiagonalSweep/TransitionColor")
+shader = ExtResource("3_yktgx")
+metadata/_custom_type_script = "uid://gixis1lf5ei7"
 
 [sub_resource type="Resource" id="Resource_fade_type"]
 script = ExtResource("2_bmabg")
 transition_root_node = NodePath("Fade")
 has_progress_bar = true
 progress_bar_node = NodePath("Fade/ProgressBar")
-has_shader = null
-shader_node = null
+
+[sub_resource type="Resource" id="Resource_au8gb"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("HorizontalSweep")
+has_shader = true
+shader_node = NodePath("HorizontalSweep/TransitionColor")
+shader = ExtResource("3_fqp15")
+metadata/_custom_type_script = "uid://gixis1lf5ei7"
 
 [sub_resource type="Resource" id="Resource_shader_type"]
 script = ExtResource("2_bmabg")
@@ -26,12 +40,20 @@ has_shader = true
 shader_node = NodePath("Shader/TransitionColor")
 shader = ExtResource("2_fqp15")
 
-[sub_resource type="Resource" id="Resource_au8gb"]
+[sub_resource type="Resource" id="Resource_gegfq"]
 script = ExtResource("2_bmabg")
-transition_root_node = NodePath("HorizontalSweep")
+transition_root_node = NodePath("VerticalSweep")
 has_shader = true
-shader_node = NodePath("HorizontalSweep/TransitionColor")
-shader = ExtResource("3_fqp15")
+shader_node = NodePath("VerticalSweep/TransitionColor")
+shader = ExtResource("3_gegfq")
+metadata/_custom_type_script = "uid://gixis1lf5ei7"
+
+[sub_resource type="Resource" id="Resource_avfft"]
+script = ExtResource("2_bmabg")
+transition_root_node = NodePath("TileSquare")
+has_shader = true
+shader_node = NodePath("TileSquare/TransitionColor")
+shader = ExtResource("3_yktgx")
 metadata/_custom_type_script = "uid://gixis1lf5ei7"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ac338"]
@@ -54,10 +76,28 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 metadata/_snap_enabled = true
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_86c5g"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yktgx"]
+shader = ExtResource("2_fqp15")
+shader_parameter/progress = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_avfft"]
 shader = ExtResource("3_fqp15")
 shader_parameter/progress = 0.0
-shader_parameter/reverse = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p024a"]
+shader = ExtResource("3_yktgx")
+shader_parameter/progress = 0.0
+shader_parameter/tile_size = 16.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v6ngb"]
+shader = ExtResource("3_yktgx")
+shader_parameter/progress = 0.0
+shader_parameter/tile_size = 16.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5q14q"]
+shader = ExtResource("3_yktgx")
+shader_parameter/progress = 0.0
+shader_parameter/tile_size = 64.0000009536768
 
 [sub_resource type="Animation" id="Animation_qaec1"]
 length = 0.001
@@ -100,14 +140,80 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Shader/TransitionColor:material:shader_parameter/reverse")
+tracks/3/path = NodePath("HorizontalSweep/TransitionColor:material:shader_parameter/progress")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [0.0]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("VerticalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("DiagonalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("TileSquare/TransitionColor:material:shader_parameter/progress")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_hemby"]
+resource_name = "diagonal_sweep_end"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("DiagonalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_j3vff"]
+resource_name = "diagonal_sweep_start"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("DiagonalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
 }
 
 [sub_resource type="Animation" id="Animation_ylap7"]
@@ -225,7 +331,7 @@ resource_name = "horizontal_sweep_end"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Shader/TransitionColor:material:shader_parameter/progress")
+tracks/0/path = NodePath("HorizontalSweep/TransitionColor:material:shader_parameter/progress")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -234,25 +340,13 @@ tracks/0/keys = {
 "update": 0,
 "values": [1.0, 0.0]
 }
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Shader/TransitionColor:material:shader_parameter/reverse")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
 
 [sub_resource type="Animation" id="Animation_yktgx"]
 resource_name = "horizontal_sweep_start"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Shader/TransitionColor:material:shader_parameter/progress")
+tracks/0/path = NodePath("HorizontalSweep/TransitionColor:material:shader_parameter/progress")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -260,18 +354,6 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [0.0, 1.0]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Shader/TransitionColor:material:shader_parameter/reverse")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
 }
 
 [sub_resource type="Animation" id="Animation_fqp15"]
@@ -304,9 +386,71 @@ tracks/0/keys = {
 "values": [0.0, 1.0]
 }
 
+[sub_resource type="Animation" id="Animation_avfft"]
+resource_name = "tile_square_end"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TileSquare/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_p024a"]
+resource_name = "tile_square_start"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TileSquare/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
+[sub_resource type="Animation" id="Animation_v6ngb"]
+resource_name = "vertical_sweep_end"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VerticalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_8tgju"]
+resource_name = "vertical_sweep_start"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VerticalSweep/TransitionColor:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_370oc"]
 _data = {
 &"RESET": SubResource("Animation_qaec1"),
+&"diagonal_sweep_end": SubResource("Animation_hemby"),
+&"diagonal_sweep_start": SubResource("Animation_j3vff"),
 &"fade_from_black": SubResource("Animation_ylap7"),
 &"fade_from_black_circle": SubResource("Animation_e1o4y"),
 &"fade_to_black": SubResource("Animation_1isuu"),
@@ -314,7 +458,11 @@ _data = {
 &"horizontal_sweep_end": SubResource("Animation_gegfq"),
 &"horizontal_sweep_start": SubResource("Animation_yktgx"),
 &"shader_fade_from_black": SubResource("Animation_fqp15"),
-&"shader_fade_to_black": SubResource("Animation_au8gb")
+&"shader_fade_to_black": SubResource("Animation_au8gb"),
+&"tile_square_end": SubResource("Animation_avfft"),
+&"tile_square_start": SubResource("Animation_p024a"),
+&"vertical_sweep_end": SubResource("Animation_v6ngb"),
+&"vertical_sweep_start": SubResource("Animation_8tgju")
 }
 
 [node name="AceDefaultLoadingScene" type="CanvasLayer" unique_id=137437426 node_paths=PackedStringArray("animation_player")]
@@ -324,12 +472,16 @@ script = ExtResource("1_f4nyk")
 animation_player = NodePath("AnimationPlayer")
 transition_types = Dictionary[String, ExtResource("2_bmabg")]({
 "Circle": SubResource("Resource_circle_type"),
+"DiagonalSweep": SubResource("Resource_yktgx"),
 "Fade": SubResource("Resource_fade_type"),
 "HorizontalSweep": SubResource("Resource_au8gb"),
-"ShaderFade": SubResource("Resource_shader_type")
+"ShaderFade": SubResource("Resource_shader_type"),
+"TileSquare": SubResource("Resource_avfft"),
+"VerticalSweep": SubResource("Resource_gegfq")
 })
 
 [node name="Fade" type="Control" parent="." unique_id=683594023]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -397,6 +549,7 @@ mouse_filter = 2
 texture = SubResource("GradientTexture2D_usqve")
 
 [node name="Shader" type="Control" parent="." unique_id=2086472074]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -405,7 +558,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TransitionColor" type="ColorRect" parent="Shader" unique_id=1243070740]
-material = SubResource("ShaderMaterial_86c5g")
+material = SubResource("ShaderMaterial_yktgx")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -415,6 +568,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="HorizontalSweep" type="Control" parent="." unique_id=2063267340]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -423,7 +577,63 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TransitionColor" type="ColorRect" parent="HorizontalSweep" unique_id=1438138148]
-material = SubResource("ShaderMaterial_86c5g")
+material = SubResource("ShaderMaterial_avfft")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VerticalSweep" type="Control" parent="." unique_id=913415821]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransitionColor" type="ColorRect" parent="VerticalSweep" unique_id=98862114]
+material = SubResource("ShaderMaterial_p024a")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="DiagonalSweep" type="Control" parent="." unique_id=874641713]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransitionColor" type="ColorRect" parent="DiagonalSweep" unique_id=237038697]
+material = SubResource("ShaderMaterial_v6ngb")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TileSquare" type="Control" parent="." unique_id=42689368]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransitionColor" type="ColorRect" parent="TileSquare" unique_id=374923521]
+material = SubResource("ShaderMaterial_5q14q")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

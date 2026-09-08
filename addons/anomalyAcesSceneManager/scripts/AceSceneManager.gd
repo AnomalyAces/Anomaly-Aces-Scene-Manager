@@ -266,6 +266,9 @@ func _on_content_loaded(content: Node) -> void:
 	get_tree().root.add_child(content)
 	get_tree().current_scene = content
 
+	# Notify listeners (including the active loading screen) that loading has completed
+	load_finished.emit()
+
 	# Clean up loading screen
 	if loading_screen != null:
 		if loading_screen.has_method("_on_progress_changed") and progress_changed.is_connected(loading_screen._on_progress_changed):
@@ -273,13 +276,16 @@ func _on_content_loaded(content: Node) -> void:
 		if loading_screen.has_method("_on_load_finished") and load_finished.is_connected(loading_screen._on_load_finished):
 			load_finished.disconnect(loading_screen._on_load_finished)
 
-		if loading_screen.has_method("finish_transition"):
-			loading_screen.call("finish_transition")
-		else:
-			loading_screen.queue_free()
+		var ls: Node = loading_screen
 		loading_screen = null
 
-	load_finished.emit()
+		if ls.has_method("finish_transition"):
+			ls.call("finish_transition")
+			if is_instance_valid(ls) and ls.has_signal("loading_screen_finished"):
+				await ls.loading_screen_finished
+		else:
+			ls.queue_free()
+
 	transition_completed.emit()
 
 	# Reset manager state completely for subsequent transitions
