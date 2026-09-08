@@ -54,8 +54,8 @@ The plugin registers settings directly under `aceSceneManager` in Godot's **Proj
 | Setting Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `aceSceneManager/scene_registry` | `Dictionary[String, String]` | `{}` | Key-value pairs mapping scene aliases (e.g. `"Title"`, `"Login"`) to target `.tscn` file paths. |
-| `aceSceneManager/available_transitions` | `Dictionary[String, AceTransitionConfig]` | `{}` | Custom transition configurations mapping transition names to `AceTransitionConfig` objects. |
-| `aceSceneManager/transition_types` | `Dictionary[String, AceTransitionType]` | `{}` | Maps Transition Type names to `AceTransitionType` layout nodes. |
+| `aceSceneManager/available_transitions` | `Dictionary[String, String]` | `{}` | Custom transition configurations mapping transition names to `AceTransitionConfig` resource file paths (`*.tres`). |
+| `aceSceneManager/transition_types` | `Dictionary[String, String]` | `{}` | Maps Transition Type names to `AceTransitionType` layout resource file paths (`*.tres`). |
 | `aceSceneManager/default_loading_screen` | `String` | `"res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn"` | Default file path (`*.tscn`) to the loading screen scene instantiated during threaded load operations. |
 | `aceSceneManager/use_sub_threads` | `bool` | `true` | When `true`, uses background sub-threads during `ResourceLoader.load_threaded_request` for non-blocking UI frame updates. |
 
@@ -233,27 +233,42 @@ On the root node of your loading scene, expand the exported `transition_types` d
 
 ---
 
-### Step 5: Register Transitions in Project Settings
+### Step 5: Creating and Registering Transitions
 
-1. Open **Project Settings** -> **General** -> **Ace Scene Manager** (or configure via code in `AceSettings`).
-2. **Default Loading Screen**: Set `aceSceneManager/default_loading_screen` to your custom scene path (e.g., `"res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn"`).
-3. **Available Transitions**: In `aceSceneManager/available_transitions`, create entries mapping transition names to `AceTransitionConfig` resources:
+#### Creating Transition Configs (`.tres`)
+To keep `project.godot` clean, safe, and free from early-boot script parsing errors, transitions are stored as `.tres` resource files (`AceTransitionConfig`). You can create them using any of the following methods:
 
-```gdscript
-# Example configuration dictionary:
-{
-    "Fade": AceTransitionConfig.new("fade_to_black", "fade_from_black"),
-    "Circle": AceTransitionConfig.new("fade_to_black_circle", "fade_from_black_circle"),
-    "ShaderFade": AceTransitionConfig.new("shader_fade_to_black", "shader_fade_from_black"),
-    "HorizontalSweep": AceTransitionConfig.new("horizontal_sweep_start", "horizontal_sweep_end"),
-    "CustomLoading": AceTransitionConfig.new("fade_to_black", "fade_from_black", "res://demo/scenes/DemoCustomLoadingScene/DemoCustomLoadingScreen.tscn")
-}
-```
+- **Method A: Godot Tools Menu (Fastest)**:
+  1. In the top editor menu, go to **Project** &rarr; **Tools** &rarr; **Create Ace Transition Config...**
+  2. Choose a save location and filename in the dialog (e.g., `res://Transitions/DefaultTransition.tres`).
+  3. The editor automatically creates the `.tres` file, rescans the filesystem, and opens it directly in the **Inspector**.
+  4. In the **Inspector**, configure `start` (enter-animation name), `end` (exit-animation name), and optional `loading_screen_path`.
 
+- **Method B: FileSystem Dock**:
+  1. In the **FileSystem** dock, right-click any folder &rarr; **Create New** &rarr; **Resource...**
+  2. Search for **`AceTransitionConfig`** and save as `.tres`.
+  3. Set properties in the **Inspector**.
+
+- **Method C: Programmatic Creation**:
+  ```gdscript
+  AceTransitions.create_transition_config(
+      "res://Transitions/DefaultTransition.tres",
+      "circuit_fade_start",
+      "circuit_fade_end",
+      "res://Scenes/Global/Scenes/LoadingScene/LoadingScene.tscn"
+  )
+  ```
+
+#### Registering Transitions in Project Settings
+1. Open **Project Settings** &rarr; **General** &rarr; **Ace Scene Manager**.
+2. **Default Loading Screen**: Set `aceSceneManager/default_loading_screen` to your default loading screen scene (e.g., `"res://addons/anomalyAcesSceneManager/scenes/DefaultLoadingScene/AceDefaultLoadingScene.tscn"`).
+3. **Available Transitions**: In `aceSceneManager/available_transitions`, add key-value pairs mapping transition names to your `.tres` files:
+   - Key: `"Default"`
+   - Value: `"res://Transitions/DefaultTransition.tres"` (picked directly with the file browser)
 4. Trigger transitions anywhere in code:
-```gdscript
-AceSceneManager.load_scene("DemoDetail", "HorizontalSweep")
-```
+   ```gdscript
+   AceSceneManager.load_scene("Login", "Default", scene_data)
+   ```
 
 ---
 

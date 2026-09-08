@@ -28,8 +28,8 @@ const DEFAULT_LOADING_SCREEN: String = "default_loading_screen"
 const USE_SUB_THREADS: String = "use_sub_threads"
 
 static var empty_registry: Dictionary[String, String] = {}
-static var empty_transitions: Dictionary[String, AceTransitionConfig] = {}
-static var default_transition_types: Dictionary[String, AceTransitionType] = {}
+static var empty_transitions: Dictionary[String, String] = {}
+static var default_transition_types: Dictionary[String, String] = {}
 
 
 static var SETTINGS_CONFIGURATION: Dictionary[String, AceSettingConfig] = {
@@ -45,14 +45,14 @@ static var SETTINGS_CONFIGURATION: Dictionary[String, AceSettingConfig] = {
 		TYPE_DICTIONARY,
 		empty_transitions,
 		PROPERTY_HINT_TYPE_STRING,
-		"%s/%s:;%s/%s:%s" % [TYPE_STRING, PROPERTY_HINT_NONE, TYPE_OBJECT, PROPERTY_HINT_RESOURCE_TYPE, "AceTransitionConfig"]
+		"%s/%s:;%s/%s:%s" % [TYPE_STRING, PROPERTY_HINT_NONE, TYPE_STRING, PROPERTY_HINT_FILE, "*.tres"]
 	),
 	TRANSITION_TYPES: AceSettingConfig.new(
 		TRANSITION_TYPES,
 		TYPE_DICTIONARY,
 		default_transition_types,
 		PROPERTY_HINT_TYPE_STRING,
-		"%s/%s:;%s/%s:%s" % [TYPE_STRING, PROPERTY_HINT_NONE, TYPE_OBJECT, PROPERTY_HINT_RESOURCE_TYPE, "AceTransitionType"]
+		"%s/%s:;%s/%s:%s" % [TYPE_STRING, PROPERTY_HINT_NONE, TYPE_STRING, PROPERTY_HINT_FILE, "*.tres"]
 	),
 
 	DEFAULT_LOADING_SCREEN: AceSettingConfig.new(

@@ -93,7 +93,7 @@ func get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionT
 	if AceSceneManager.settings != null:
 		var custom_trans: Dictionary = AceSceneManager.settings.get_setting("available_transitions", {})
 		for k in custom_trans:
-			var dict_cfg: AceTransitionConfig = custom_trans[k] as AceTransitionConfig
+			var dict_cfg: AceTransitionConfig = AceTransitions.get_transition(String(k), AceSceneManager.settings)
 			if dict_cfg == config or (dict_cfg != null and not dict_cfg.start.is_empty() and dict_cfg.start == config.start and dict_cfg.end == config.end):
 				search_name = String(k)
 				break
@@ -125,9 +125,13 @@ func get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionT
 	if not search_name.is_empty() and AceSceneManager.settings != null:
 		var global_types: Dictionary = AceSceneManager.settings.get_setting("transition_types", {})
 		if global_types.has(search_name):
-			var raw_info: AceTransitionType = global_types[search_name] as AceTransitionType
-			if raw_info != null:
-				return raw_info
+			var raw_val: Variant = global_types[search_name]
+			if raw_val is AceTransitionType:
+				return raw_val
+			elif raw_val is String and not (raw_val as String).is_empty():
+				var loaded_type: Resource = load(raw_val as String)
+				if loaded_type is AceTransitionType:
+					return loaded_type
 		if AceSceneManagerDemoSettings.demo_transition_types.has(search_name):
 			return AceSceneManagerDemoSettings.demo_transition_types[search_name]
 
