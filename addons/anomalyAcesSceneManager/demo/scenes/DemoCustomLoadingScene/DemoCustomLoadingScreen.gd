@@ -26,7 +26,7 @@ func _input(event: InputEvent) -> void:
 
 
 func play_transition(transition: AceTransitionConfig) -> void:
-	_selected_transition = _get_transition_config(transition)
+	_selected_transition = get_transition_config(transition)
 	var active_node: Control = get_transition_node(_selected_transition)
 	if active_node != null:
 		active_node.visible = true

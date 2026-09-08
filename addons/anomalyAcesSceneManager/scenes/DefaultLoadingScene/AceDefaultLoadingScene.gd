@@ -20,11 +20,11 @@ func _ready() -> void:
 # ==============================================================================
 
 func play_transition(transition: AceTransitionConfig) -> void:
-	_selected_transition = _get_transition_config(transition)
+	_selected_transition = get_transition_config(transition)
 	_setup_transition_node()
 
 	var start_anim: String = _selected_transition.start if _selected_transition != null else ""
-	AceLog.printLog(["[TRANSITION DIAGNOSTIC] play_transition: anim='%s', has_anim=%s, anim_player=%s" % [start_anim, (animation_player.has_animation(start_anim) if animation_player != null else false), animation_player]], AceLog.LOG_LEVEL.INFO)
+	AceLog.printLog(["[TRANSITION DIAGNOSTIC] play_transition: anim='%s', has_anim=%s, anim_player=%s" % [start_anim, (animation_player.has_animation(start_anim) if animation_player != null else false), animation_player]], AceLog.LOG_LEVEL.DEBUG)
 
 	if animation_player != null and not start_anim.is_empty() and animation_player.has_animation(start_anim):
 		animation_player.play(start_anim)
@@ -43,7 +43,7 @@ func finish_transition() -> void:
 					(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var end_anim: String = _selected_transition.end if _selected_transition != null else ""
-	AceLog.printLog(["[TRANSITION DIAGNOSTIC] finish_transition: anim='%s', has_anim=%s, anim_player=%s" % [end_anim, (animation_player.has_animation(end_anim) if animation_player != null else false), animation_player]], AceLog.LOG_LEVEL.INFO)
+	AceLog.printLog(["[TRANSITION DIAGNOSTIC] finish_transition: anim='%s', has_anim=%s, anim_player=%s" % [end_anim, (animation_player.has_animation(end_anim) if animation_player != null else false), animation_player]], AceLog.LOG_LEVEL.DEBUG)
 
 	if animation_player != null and not end_anim.is_empty() and animation_player.has_animation(end_anim):
 		animation_player.play(end_anim)

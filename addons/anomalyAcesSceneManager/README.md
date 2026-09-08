@@ -77,14 +77,27 @@ class_name MyCustomLoadingScene
 }
 ```
 
-### 2. Strictly Typed Dynamic Helpers (`AceLoadingScene`)
-- **`play_transition(transition: AceTransitionConfig) -> void`**: Begins transition-in animation for the specified configuration.
-- **`finish_transition() -> void`**: Begins transition-out animation when loading completes.
-- **`get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionType`**: Retrieves `AceTransitionType` layout node using the resolution waterfall.
-- **`get_transition_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the root container Control node for the active transition type.
-- **`get_progress_bar_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the progress bar visual Control node if `has_progress_bar` is `true`.
-- **`get_shader_node(transition: AceTransitionConfig) -> CanvasItem`**: Resolves the target node for shader attachment (falls back to `transition_root_node`).
+### 2. Available Helper & Lifecycle Methods (`AceLoadingScene`)
+
+`AceLoadingScene` provides built-in helper methods to make implementing custom loading screens straightforward, as well as abstract lifecycle hooks that subclasses implement:
+
+#### Dynamic Helper Methods (Available to Subclasses)
+- **`get_transition_config(transition: AceTransitionConfig = null) -> AceTransitionConfig`**: Resolves the transition configuration object, returning `transition` if provided or falling back to the project default (`"Fade"`).
+- **`get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionType`**: Retrieves the `AceTransitionType` layout resource for the specified transition using the resolution waterfall (scene dictionary &rarr; global project settings &rarr; fallback).
+- **`get_transition_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the root container `Control` node for the active transition type (falls back to the first child `Control` node).
+- **`get_progress_bar_node(transition: AceTransitionConfig) -> Control`**: Resolves and returns the progress bar visual `Control` node if `has_progress_bar` is `true` on the active `AceTransitionType` (falls back to searching children for `"ProgressBar"`).
+- **`get_shader_node(transition: AceTransitionConfig) -> CanvasItem`**: Resolves the target `CanvasItem` node for shader attachment (falls back to `transition_root_node`).
 - **`setup_shader_material(transition: AceTransitionConfig) -> ShaderMaterial`**: Instantiates and assigns a `ShaderMaterial` with `info.shader` to the target shader node if `has_shader` is `true`.
+
+#### Abstract Lifecycle Methods (To Implement in Subclasses)
+- **`play_transition(transition: AceTransitionConfig) -> void`**: Called by `AceSceneManager` to begin the transition-in animation. Subclasses must emit `loading_screen_ready` once the screen is covered.
+- **`finish_transition() -> void`**: Called by `AceSceneManager` when resource loading completes to begin the transition-out animation. Subclasses must emit `loading_screen_finished` and call `queue_free()` when finished.
+- **`_on_progress_changed(new_value: float) -> void`**: Called by `AceSceneManager` when background thread load progress updates (`0.0` to `1.0`).
+- **`_on_load_finished() -> void`**: Called by `AceSceneManager` the moment resource loading has finished, allowing loading screens to update UI (e.g. snap progress to 100%, show "Press Any Key" prompt) before `finish_transition()`.
+
+#### Signals
+- **`loading_screen_ready`**: Emit when the transition-in animation finishes to signal `AceSceneManager` to begin background loading.
+- **`loading_screen_finished`**: Emit when the transition-out animation finishes so `AceSceneManager` knows the transition has completely finished.
 
 ### 3. Transition Type Resolution Waterfall Order (`get_transition_type_info`)
 
@@ -118,7 +131,7 @@ class_name MyCustomLoadingScene
 var _selected_transition: AceTransitionConfig
 
 func play_transition(transition: AceTransitionConfig) -> void:
-	_selected_transition = _get_transition_config(transition)
+	_selected_transition = get_transition_config(transition)
 	
 	# Resolve active transition container node and hide inactive containers
 	var active_node: Control = get_transition_node(_selected_transition)

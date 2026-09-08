@@ -84,7 +84,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 ## Helper method to retrieve AceTransitionType info for a given transition parameter.
 func get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionType:
-	var config: AceTransitionConfig = _get_transition_config(transition)
+	var config: AceTransitionConfig = get_transition_config(transition)
 	if config == null:
 		return AceTransitionType.new()
 
@@ -132,6 +132,13 @@ func get_transition_type_info(transition: AceTransitionConfig) -> AceTransitionT
 			return AceSceneManagerDemoSettings.demo_transition_types[search_name]
 
 	return AceTransitionType.new()
+
+
+## Helper method to resolve transition parameters into an AceTransitionConfig.
+func get_transition_config(transition: AceTransitionConfig = null) -> AceTransitionConfig:
+	if transition != null:
+		return transition
+	return AceTransitions.get_transition_config("Fade", AceSceneManager.settings)
 
 
 ## Helper method to resolve the root Control node for a given transition parameter.
@@ -198,7 +205,6 @@ func setup_shader_material(transition: AceTransitionConfig) -> ShaderMaterial:
 	return null
 
 
-
 # ==============================================================================
 # PRIVATE / CALLBACK METHODS
 # ==============================================================================
@@ -210,10 +216,3 @@ func setup_shader_material(transition: AceTransitionConfig) -> ShaderMaterial:
 
 ## Called by AceSceneManager when resource load completes.
 @abstract func _on_load_finished() -> void
-
-
-## Helper method to resolve transition parameters into an AceTransitionConfig.
-func _get_transition_config(transition: AceTransitionConfig) -> AceTransitionConfig:
-	if transition != null:
-		return transition
-	return AceTransitions.get_transition_config("Fade", AceSceneManager.settings)
