@@ -27,10 +27,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -150.0
-offset_right = 200.0
-offset_bottom = 150.0
+offset_left = -458.5
+offset_top = -183.0
+offset_right = 458.5
+offset_bottom = 183.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
@@ -45,51 +45,70 @@ layout_mode = 2
 text = "Status: Ready in Demo Main Screen"
 horizontal_alignment = 1
 
-[node name="FadeButton" type="Button" parent="VBoxContainer" unique_id=388647338]
-custom_minimum_size = Vector2(0, 40)
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer" unique_id=231602649]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="FadeButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=388647338]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Fade Transition)"
 
-[node name="CircleButton" type="Button" parent="VBoxContainer" unique_id=888294902]
-custom_minimum_size = Vector2(0, 40)
+[node name="CircleButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=888294902]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Circle Wipe)"
 
-[node name="CustomLoadingButton" type="Button" parent="VBoxContainer" unique_id=30888468]
-custom_minimum_size = Vector2(0, 40)
+[node name="CustomLoadingButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=30888468]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Custom Loading Screen)"
 
-[node name="ShaderFadeButton" type="Button" parent="VBoxContainer" unique_id=1999526071]
-custom_minimum_size = Vector2(0, 40)
+[node name="ShaderFadeButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=1999526071]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Shader Fade Button)"
 
-[node name="HorizontalSweepButton" type="Button" parent="VBoxContainer" unique_id=651571364]
-custom_minimum_size = Vector2(0, 40)
+[node name="HorizontalSweepButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=651571364]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Shader Horizontal Sweep Button)"
 
-[node name="VerticalSweepButton" type="Button" parent="VBoxContainer" unique_id=1124016492]
-custom_minimum_size = Vector2(0, 40)
+[node name="VerticalSweepButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=1124016492]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Shader Vertical Sweep Button)"
 
-[node name="DiagonalSweepButton" type="Button" parent="VBoxContainer" unique_id=488062453]
-custom_minimum_size = Vector2(0, 40)
+[node name="DiagonalSweepButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=488062453]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Shader Diagonal Sweep Button)"
 
-[node name="TileSquareButton" type="Button" parent="VBoxContainer" unique_id=1660805073]
-custom_minimum_size = Vector2(0, 40)
+[node name="TileSquareButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=1660805073]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Load Detail Scene (Shader Tile Square Button)"
 
-[connection signal="pressed" from="VBoxContainer/FadeButton" to="." method="_on_fade_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/CircleButton" to="." method="_on_circle_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/CustomLoadingButton" to="." method="_on_custom_loading_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/ShaderFadeButton" to="." method="_on_shader_fade_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/HorizontalSweepButton" to="." method="_on_horizontal_sweep_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/VerticalSweepButton" to="." method="_on_vertical_sweep_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/DiagonalSweepButton" to="." method="_on_diagonal_sweep_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/TileSquareButton" to="." method="_on_tile_square_sweep_button_pressed"]
+[node name="TileDiamondButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=1652354263]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Load Detail Scene (Shader Tile Diamond Button)"
+
+[node name="TileDiamondSweepButton" type="Button" parent="VBoxContainer/GridContainer" unique_id=396142221]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Load Detail Scene (Shader Tile Diamond Sweep Button)"
+
+[connection signal="pressed" from="VBoxContainer/GridContainer/FadeButton" to="." method="_on_fade_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/CircleButton" to="." method="_on_circle_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/CustomLoadingButton" to="." method="_on_custom_loading_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/ShaderFadeButton" to="." method="_on_shader_fade_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/HorizontalSweepButton" to="." method="_on_horizontal_sweep_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/VerticalSweepButton" to="." method="_on_vertical_sweep_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/DiagonalSweepButton" to="." method="_on_diagonal_sweep_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/TileSquareButton" to="." method="_on_tile_square_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/TileDiamondButton" to="." method="_on_tile_diamond_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GridContainer/TileDiamondSweepButton" to="." method="_on_tile_diamond_sweep_button_pressed"]

@@ -10,7 +10,7 @@ void fragment() {
 	vec2 position_in_square = UV * num_of_tiles;
 	vec2 frac = fract(position_in_square);
 	
-	if(frac.x + frac.y > progress * 2.0){
+	if(frac.x + frac.y >= progress * 2.0){
 		discard;
 	}
 }

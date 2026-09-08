@@ -9,8 +9,9 @@ void fragment() {
 	vec2 num_of_tiles = viewport_size / tile_size;
 	vec2 position_in_square = UV * num_of_tiles;
 	vec2 frac = fract(position_in_square);
+	vec2 dir = frac - 0.5;
 	
-	if(frac.x + frac.y > progress * 2.0){
+	if(abs(dir.x) + abs(dir.y) >= progress * 2.0){
 		discard;
 	}
 }

@@ -20,6 +20,8 @@ static var demo_transitions: Dictionary[String, AceTransitionConfig] = {
 	"VerticalSweep": AceTransitionConfig.new("vertical_sweep_start", "vertical_sweep_end"),
 	"DiagonalSweep": AceTransitionConfig.new("diagonal_sweep_start", "diagonal_sweep_end"),
 	"TileSquare": AceTransitionConfig.new("tile_square_start", "tile_square_end"),
+	"TileDiamond": AceTransitionConfig.new("tile_diamond_start", "tile_diamond_end"),
+	"TileDiamondSweep": AceTransitionConfig.new("tile_diamond_sweep_start", "tile_diamond_sweep_end"),
 }
 
 static var demo_transition_types: Dictionary[String, AceTransitionType] = {}
