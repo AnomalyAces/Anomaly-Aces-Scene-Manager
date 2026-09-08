@@ -215,6 +215,9 @@ On the root node of your loading scene, expand the exported `transition_types` d
    - `shader_node` = `NodePath("Shader/TransitionColor")` *(Optional: defaults to `transition_root_node` if empty)*
    - `shader` = Assign your `.gdshader` resource (e.g. `res://addons/anomalyAcesSceneManager/shaders/horizontal_sweep.gdshader`)
 
+> [!TIP]
+> **Looking for more transition shaders?** A great place to find additional loading screen transition shaders (such as diamond wipes, dissolves, pixelations, blinds, etc.) is [GodotShaders.com Transition Shaders](https://godotshaders.com/shader/?orderby=relevance&order=DESC&q=transition).
+
 ---
 
 ### Step 5: Register Transitions in Project Settings
